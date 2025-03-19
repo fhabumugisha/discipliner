@@ -18,15 +18,16 @@
             </div>
 
             <!-- Add/Edit Child Form -->
-            <div id="childForm" class="bg-white dark:bg-gray-800 shadow rounded-lg p-6 mb-8">
+            <div id="childForm" class="bg-white dark:bg-gray-800 shadow rounded-lg p-6 mb-8"
+                 th:with="isEdit=${editMode != null && editMode}">
                 <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4" 
-                    th:text="${editMode} ? #{children.edit.title} : #{children.add.title}">Add a Child</h2>
+                    th:text="${isEdit} ? #{children.edit.title} : #{children.add.title}">Add a Child</h2>
                 
-                <form th:with="isEdit=${editMode != null && editMode}"
+                <!-- Add Form -->
+                <form th:if="${!isEdit}"
                       th:action="@{/children/{parentId}(parentId=${parentId})}"
                       th:method="POST"
                       th:object="${childDto}"
-                      th:if="${!isEdit}"
                       hx-post="@{/children/{parentId}(parentId=${parentId})}"
                       hx-target="#childrenContainer"
                       hx-swap="outerHTML"
@@ -90,11 +91,10 @@
                 </form>
 
                 <!-- Edit Form -->
-                <form th:with="isEdit=${editMode != null && editMode}"
+                <form th:if="${isEdit}"
                       th:action="@{/children/{parentId}/{childId}(parentId=${parentId},childId=${childDto.id})}"
                       th:method="PUT"
                       th:object="${childDto}"
-                      th:if="${isEdit}"
                       hx-put="@{/children/{parentId}/{childId}(parentId=${parentId},childId=${childDto.id})}"
                       hx-target="#childrenContainer"
                       hx-swap="outerHTML"
