@@ -4,12 +4,7 @@ spring:
       uri: mongodb+srv://${DB_USERNAME}:${DB_PASSWORD}@cluster0.iogap.mongodb.net/${DB_NAME}?retryWrites=true&w=majority&appName=Cluster0
       auto-index-creation: true
 
-# Spring security default password
 
-  security:
-    user:
-      name: ${APP_USERNAME:admin}
-      password: ${APP_PASSWORD:admin}
 
 
 

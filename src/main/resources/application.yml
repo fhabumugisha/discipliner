@@ -1,20 +1,16 @@
 spring:
   application:
-    name: discipline
+    name: discipliner
   data:
     mongodb:
       uri: ${MONGODB_URI:mongodb+srv://${DB_USERNAME}:${DB_PASSWORD}@cluster0.iogap.mongodb.net/${DB_NAME}?retryWrites=true&w=majority&appName=Cluster0}
-      database: ${MONGODB_DATABASE:discipline}
       auto-index-creation: true
   thymeleaf:
     cache: false
     mode: HTML
     encoding: UTF-8
     prefix: classpath:/templates/
-  security:
-    user:
-      name: ${APP_USERNAME:admin}
-      password: ${APP_PASSWORD:admin}
+ 
 
 server:
   port: 8080
