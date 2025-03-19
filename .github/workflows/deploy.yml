@@ -11,15 +11,15 @@ env:
   IMAGE_NAME: ${{ vars.IMAGE_NAME }}
   SERVICE_NAME: ${{ vars.SERVICE_NAME }}
   GCP_REGION: ${{ vars.GCP_REGION }}
-  POSTGRES_URL: ${{ vars.POSTGRES_URL }}
-  POSTGRES_USER: ${{ secrets.DB_USERNAME }}
-  POSTGRES_PASSWORD: ${{ secrets.DB_PASSWORD }}
-  POSTGRES_DB: ${{ vars.POSTGRES_DB }}
+
 
 jobs:
   build-and-deploy:
     name: Build and Deploy
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
 
     steps:
       - name: Checkout code
@@ -39,6 +39,12 @@ jobs:
         uses: google-github-actions/auth@v1
         with:
           credentials_json: ${{ secrets.GCP_CREDENTIALS }}
+          project_id: ${{ env.PROJECT_ID }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v1
+        with:
+          project_id: ${{ env.PROJECT_ID }}
 
       - name: Configure Docker for GCP
         run: gcloud auth configure-docker
@@ -50,6 +56,7 @@ jobs:
           -Djib.to.tags=latest
 
       - name: Deploy to Cloud Run
+        id: deploy
         uses: google-github-actions/deploy-cloudrun@v1
         with:
           service: ${{ env.SERVICE_NAME }}
@@ -57,7 +64,12 @@ jobs:
           region: ${{ env.GCP_REGION }}
           flags: '--allow-unauthenticated'
           env_vars: |
-            POSTGRES_URL=${{ env.POSTGRES_URL }}
-            POSTGRES_USER=${{ env.POSTGRES_USER }}
-            POSTGRES_PASSWORD=${{ env.POSTGRES_PASSWORD }}
-            POSTGRES_DB=${{ env.POSTGRES_DB }}
+            DB_USERNAME=${{ secrets.DB_USERNAME }}
+            DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+            DB_NAME=${{ vars.DB_NAME }} 
+            APP_USERNAME=${{ secrets.APP_USERNAME }}
+            APP_PASSWORD=${{ secrets.APP_PASSWORD }}
+
+
+      - name: Show Output URL
+        run: echo ${{ steps.deploy.outputs.url }}

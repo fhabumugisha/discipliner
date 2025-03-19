@@ -1,18 +1,15 @@
-spring:  
-   # Postgresql
-  datasource:
-    url: jdbc:postgresql://localhost:5432/discipline
-    username: postgres
-    password: admin
-    driver-class-name: org.postgresql.Driver    
-    
-        
+spring:
+  data:
+    mongodb:
+      uri: mongodb+srv://${DB_USERNAME}:${DB_PASSWORD}@cluster0.iogap.mongodb.net/${DB_NAME}?retryWrites=true&w=majority&appName=Cluster0
+      auto-index-creation: true
+
 # Spring security default password
 
   security:
     user:
-      name: admin
-      password: admin
+      name: ${APP_USERNAME:admin}
+      password: ${APP_PASSWORD:admin}
 
 
 
