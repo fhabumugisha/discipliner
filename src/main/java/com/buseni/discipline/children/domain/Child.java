@@ -35,7 +35,7 @@ public class Child {
 
     @Indexed
     @Field("parent_id")
-    private UUID parentId;
+    private String parentId;
 
     @CreatedDate
     @Field("created_at")

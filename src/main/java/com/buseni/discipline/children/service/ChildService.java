@@ -1,7 +1,6 @@
 package com.buseni.discipline.children.service;
 
 import java.util.List;
-import java.util.UUID;
 
 import com.buseni.discipline.children.dto.ChildDto;
 
@@ -16,7 +15,7 @@ public interface ChildService {
      * @param parentId the parent's ID
      * @return list of children DTOs
      */
-    List<ChildDto> getChildrenByParentId(UUID parentId);
+    List<ChildDto> getChildrenByParentId(String parentId);
 
     /**
      * Create a new child.
@@ -25,7 +24,7 @@ public interface ChildService {
      * @param childDto the child data
      * @return the created child DTO
      */
-    ChildDto createChild(UUID parentId, ChildDto childDto);
+    ChildDto createChild(String parentId, ChildDto childDto);
 
     /**
      * Get a child by ID.

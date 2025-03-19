@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.buseni.discipline.children.dto.ChildDto;
 import com.buseni.discipline.children.service.ChildService;
+import com.buseni.discipline.users.domain.User;
 
 import io.github.wimdeblauwe.htmx.spring.boot.mvc.HxRequest;
 import jakarta.validation.Valid;
@@ -35,8 +36,8 @@ public class ChildController {
     @GetMapping
     public String getChildrenPage(Model model, Authentication authentication) {
         // We'll get the parent ID from the authenticated user in a real scenario
-        UUID parentId = UUID.fromString(authentication.getName());
-       
+        User userDetails = (User) authentication.getPrincipal();
+        String parentId = userDetails.getId();
         List<ChildDto> children = childService.getChildrenByParentId(parentId);
         
         model.addAttribute(CHILDREN_MODEL_ATTRIBUTE, children);
@@ -59,7 +60,7 @@ public class ChildController {
 
     @PostMapping("/{parentId}")
     @HxRequest
-    public String addChild(@PathVariable UUID parentId,
+    public String addChild(@PathVariable String parentId,
                          @Valid @ModelAttribute(CHILD_DTO_MODEL_ATTRIBUTE) ChildDto childDto,
                          BindingResult bindingResult,
                          Model model) {
@@ -79,7 +80,7 @@ public class ChildController {
 
     @PutMapping("/{parentId}/{childId}")
     @HxRequest
-    public String updateChild(@PathVariable UUID parentId,
+    public String updateChild(@PathVariable String parentId,
                             @PathVariable String childId,
                             @Valid @ModelAttribute(CHILD_DTO_MODEL_ATTRIBUTE) ChildDto childDto,
                             BindingResult bindingResult,

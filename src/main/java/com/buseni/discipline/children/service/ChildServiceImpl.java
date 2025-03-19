@@ -19,7 +19,7 @@ public class ChildServiceImpl implements ChildService {
     private final ChildRepository childRepository;
 
     @Override
-    public List<ChildDto> getChildrenByParentId(UUID parentId) {
+    public List<ChildDto> getChildrenByParentId(String parentId) {
         return childRepository.findByParentId(parentId)
                 .stream()
                 .map(this::toDto)
@@ -28,7 +28,7 @@ public class ChildServiceImpl implements ChildService {
 
     @Override
     @Transactional
-    public ChildDto createChild(UUID parentId, ChildDto childDto) {
+    public ChildDto createChild(String parentId, ChildDto childDto) {
         Child child = Child.builder()
                 .name(childDto.getName())
                 .age(childDto.getAge())
