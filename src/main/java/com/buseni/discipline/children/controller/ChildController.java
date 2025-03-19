@@ -3,6 +3,7 @@ package com.buseni.discipline.children.controller;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -32,9 +33,10 @@ public class ChildController {
     private final ChildService childService;
 
     @GetMapping
-    public String getChildrenPage(Model model) {
+    public String getChildrenPage(Model model, Authentication authentication) {
         // We'll get the parent ID from the authenticated user in a real scenario
-        UUID parentId = UUID.randomUUID(); // Temporary for testing
+        UUID parentId = UUID.fromString(authentication.getName());
+       
         List<ChildDto> children = childService.getChildrenByParentId(parentId);
         
         model.addAttribute(CHILDREN_MODEL_ATTRIBUTE, children);

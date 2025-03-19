@@ -28,9 +28,9 @@
                       th:action="@{/children/{parentId}(parentId=${parentId})}"
                       th:method="POST"
                       th:object="${childDto}"
-                      hx-post="@{/children/{parentId}(parentId=${parentId})}"
-                      hx-target="#childrenContainer"
-                      hx-swap="outerHTML"
+                      th:hx-post="@{/children/{parentId}(parentId=${parentId})}"
+                      th:hx-target="'#childrenContainer'"
+                      th:hx-swap="'outerHTML'"
                       class="space-y-4">
                     
                     <!-- Name Field -->
@@ -95,9 +95,9 @@
                       th:action="@{/children/{parentId}/{childId}(parentId=${parentId},childId=${childDto.id})}"
                       th:method="PUT"
                       th:object="${childDto}"
-                      hx-put="@{/children/{parentId}/{childId}(parentId=${parentId},childId=${childDto.id})}"
-                      hx-target="#childrenContainer"
-                      hx-swap="outerHTML"
+                      th:hx-put="@{/children/{parentId}/{childId}(parentId=${parentId},childId=${childDto.id})}"
+                      th:hx-target="'#childrenContainer'"
+                      th:hx-swap="'outerHTML'"
                       class="space-y-4">
                     
                     <!-- Name Field -->
@@ -150,8 +150,8 @@
                                        dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600
                                        transition-colors duration-200"
                                 th:hx-get="@{/children}"
-                                hx-target="#childForm"
-                                hx-swap="outerHTML">
+                                th:hx-target="'#childForm'"
+                                th:hx-swap="'outerHTML'">
                             Cancel
                         </button>
                         <button type="submit"
@@ -187,22 +187,22 @@
                             <div class="flex items-center">
                                 <div class="flex-shrink-0">
                                     <div class="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
-                                        <span class="text-blue-600 dark:text-blue-200 font-medium" th:text="${#strings.substring(child.name(), 0, 1)}">A</span>
+                                        <span class="text-blue-600 dark:text-blue-200 font-medium" th:text="${#strings.substring(child.name, 0, 1)}">A</span>
                                     </div>
                                 </div>
                                 <div class="ml-4">
-                                    <h3 class="text-lg font-medium text-gray-900 dark:text-white" th:text="${child.name()}">Child name</h3>
+                                    <h3 class="text-lg font-medium text-gray-900 dark:text-white" th:text="${child.name}">Child name</h3>
                                     <p class="text-sm text-gray-500 dark:text-gray-400">
                                         <span th:text="#{children.list.age}">Age</span>: 
-                                        <span th:text="${child.age()}">5</span>
+                                        <span th:text="${child.age}">5</span>
                                     </p>
                                 </div>
                             </div>
                             <div class="ml-4 flex items-center space-x-4">
                                 <button class="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
-                                        th:hx-get="@{/children/{parentId}/{childId}/edit(parentId=${parentId},childId=${child.id()})}"
-                                        hx-target="#childForm"
-                                        hx-swap="outerHTML">
+                                        th:hx-get="@{/children/{parentId}/{childId}/edit(parentId=${parentId},childId=${child.id})}"
+                                        th:hx-target="'#childForm'"
+                                        th:hx-swap="'outerHTML'">
                                     <span class="sr-only">Edit</span>
                                     <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                                         <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />

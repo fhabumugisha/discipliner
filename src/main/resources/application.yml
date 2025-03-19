@@ -3,7 +3,7 @@ spring:
     name: discipliner
   data:
     mongodb:
-      uri: ${MONGODB_URI:mongodb+srv://${DB_USERNAME}:${DB_PASSWORD}@cluster0.iogap.mongodb.net/${DB_NAME}?retryWrites=true&w=majority&appName=Cluster0}
+      uri: mongodb+srv://${DB_USERNAME}:${DB_PASSWORD}@cluster0.iogap.mongodb.net/${DB_NAME}?retryWrites=true&w=majority&appName=Cluster0
       auto-index-creation: true
   thymeleaf:
     cache: false
