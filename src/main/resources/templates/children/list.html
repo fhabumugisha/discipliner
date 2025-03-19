@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/base}"
+      lang="en">
+<head>
+    <title th:text="#{children.title}">My Children</title>
+</head>
+<body>
+    <div layout:fragment="content" class="container mx-auto px-4 py-8">
+        <div class="max-w-4xl mx-auto">
+            <!-- Header -->
+            <div class="mb-8">
+                <h1 class="text-3xl font-bold text-gray-900 dark:text-white" th:text="#{children.title}">My Children</h1>
+                <p class="mt-2 text-sm text-gray-600 dark:text-gray-400" th:text="#{children.description}">
+                    Manage your children's profiles and track their progress.
+                </p>
+            </div>
+
+            <!-- Add/Edit Child Form -->
+            <div id="childForm" class="bg-white dark:bg-gray-800 shadow rounded-lg p-6 mb-8">
+                <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4" 
+                    th:text="${editMode} ? #{children.edit.title} : #{children.add.title}">Add a Child</h2>
+                
+                <form th:with="isEdit=${editMode != null && editMode}"
+                      th:action="@{/children/{parentId}(parentId=${parentId})}"
+                      th:method="POST"
+                      th:object="${childDto}"
+                      th:if="${!isEdit}"
+                      hx-post="@{/children/{parentId}(parentId=${parentId})}"
+                      hx-target="#childrenContainer"
+                      hx-swap="outerHTML"
+                      class="space-y-4">
+                    
+                    <!-- Name Field -->
+                    <div>
+                        <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300" th:text="#{children.form.name}">Name</label>
+                        <div class="mt-1 relative">
+                            <input type="text" 
+                                   id="name" 
+                                   th:field="*{name}"
+                                   class="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 
+                                          focus:outline-none focus:ring-blue-500 focus:border-blue-500 
+                                          dark:bg-gray-700 dark:text-white sm:text-sm"
+                                   th:placeholder="#{children.form.name.placeholder}"
+                                   required>
+                            <div th:if="${#fields.hasErrors('name')}" class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                <svg class="h-5 w-5 text-red-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                        </div>
+                        <p th:if="${#fields.hasErrors('name')}" class="mt-2 text-sm text-red-600 dark:text-red-400" th:errors="*{name}">Name error</p>
+                    </div>
+
+                    <!-- Age Field -->
+                    <div>
+                        <label for="age" class="block text-sm font-medium text-gray-700 dark:text-gray-300" th:text="#{children.form.age}">Age</label>
+                        <div class="mt-1 relative">
+                            <input type="number" 
+                                   id="age" 
+                                   th:field="*{age}"
+                                   class="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 
+                                          focus:outline-none focus:ring-blue-500 focus:border-blue-500 
+                                          dark:bg-gray-700 dark:text-white sm:text-sm"
+                                   min="0"
+                                   required>
+                            <div th:if="${#fields.hasErrors('age')}" class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                <svg class="h-5 w-5 text-red-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                        </div>
+                        <p th:if="${#fields.hasErrors('age')}" class="mt-2 text-sm text-red-600 dark:text-red-400" th:errors="*{age}">Age error</p>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="flex justify-end space-x-3">
+                        <button type="submit"
+                                class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white 
+                                       bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500
+                                       dark:bg-blue-500 dark:hover:bg-blue-600 dark:focus:ring-offset-gray-800
+                                       transition-colors duration-200">
+                            <svg class="mr-2 -ml-1 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
+                            </svg>
+                            <span th:text="#{children.form.submit}">Add Child</span>
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Edit Form -->
+                <form th:with="isEdit=${editMode != null && editMode}"
+                      th:action="@{/children/{parentId}/{childId}(parentId=${parentId},childId=${childDto.id})}"
+                      th:method="PUT"
+                      th:object="${childDto}"
+                      th:if="${isEdit}"
+                      hx-put="@{/children/{parentId}/{childId}(parentId=${parentId},childId=${childDto.id})}"
+                      hx-target="#childrenContainer"
+                      hx-swap="outerHTML"
+                      class="space-y-4">
+                    
+                    <!-- Name Field -->
+                    <div>
+                        <label for="editName" class="block text-sm font-medium text-gray-700 dark:text-gray-300" th:text="#{children.form.name}">Name</label>
+                        <div class="mt-1 relative">
+                            <input type="text" 
+                                   id="editName" 
+                                   th:field="*{name}"
+                                   class="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 
+                                          focus:outline-none focus:ring-blue-500 focus:border-blue-500 
+                                          dark:bg-gray-700 dark:text-white sm:text-sm"
+                                   th:placeholder="#{children.form.name.placeholder}"
+                                   required>
+                            <div th:if="${#fields.hasErrors('name')}" class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                <svg class="h-5 w-5 text-red-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                        </div>
+                        <p th:if="${#fields.hasErrors('name')}" class="mt-2 text-sm text-red-600 dark:text-red-400" th:errors="*{name}">Name error</p>
+                    </div>
+
+                    <!-- Age Field -->
+                    <div>
+                        <label for="editAge" class="block text-sm font-medium text-gray-700 dark:text-gray-300" th:text="#{children.form.age}">Age</label>
+                        <div class="mt-1 relative">
+                            <input type="number" 
+                                   id="editAge" 
+                                   th:field="*{age}"
+                                   class="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 
+                                          focus:outline-none focus:ring-blue-500 focus:border-blue-500 
+                                          dark:bg-gray-700 dark:text-white sm:text-sm"
+                                   min="0"
+                                   required>
+                            <div th:if="${#fields.hasErrors('age')}" class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                <svg class="h-5 w-5 text-red-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                        </div>
+                        <p th:if="${#fields.hasErrors('age')}" class="mt-2 text-sm text-red-600 dark:text-red-400" th:errors="*{age}">Age error</p>
+                    </div>
+
+                    <!-- Submit and Cancel Buttons -->
+                    <div class="flex justify-end space-x-3">
+                        <button type="button"
+                                class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 
+                                       bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500
+                                       dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600
+                                       transition-colors duration-200"
+                                th:hx-get="@{/children}"
+                                hx-target="#childForm"
+                                hx-swap="outerHTML">
+                            Cancel
+                        </button>
+                        <button type="submit"
+                                class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white 
+                                       bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500
+                                       dark:bg-blue-500 dark:hover:bg-blue-600 dark:focus:ring-offset-gray-800
+                                       transition-colors duration-200">
+                            <svg class="mr-2 -ml-1 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                            </svg>
+                            <span th:text="#{children.form.update}">Update Child</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Children List -->
+            <div id="childrenContainer">
+                <div th:if="${#lists.isEmpty(children)}" 
+                     class="text-center py-12 bg-white dark:bg-gray-800 rounded-lg shadow">
+                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                    <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white" th:text="#{children.list.empty}">No children</h3>
+                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400" th:text="#{children.list.empty.description}">
+                        Get started by adding a child using the form above.
+                    </p>
+                </div>
+
+                <div th:if="${not #lists.isEmpty(children)}" class="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
+                    <ul role="list" class="divide-y divide-gray-200 dark:divide-gray-700">
+                        <li th:each="child : ${children}" class="px-6 py-5 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0">
+                                    <div class="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
+                                        <span class="text-blue-600 dark:text-blue-200 font-medium" th:text="${#strings.substring(child.name(), 0, 1)}">A</span>
+                                    </div>
+                                </div>
+                                <div class="ml-4">
+                                    <h3 class="text-lg font-medium text-gray-900 dark:text-white" th:text="${child.name()}">Child name</h3>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">
+                                        <span th:text="#{children.list.age}">Age</span>: 
+                                        <span th:text="${child.age()}">5</span>
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="ml-4 flex items-center space-x-4">
+                                <button class="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
+                                        th:hx-get="@{/children/{parentId}/{childId}/edit(parentId=${parentId},childId=${child.id()})}"
+                                        hx-target="#childForm"
+                                        hx-swap="outerHTML">
+                                    <span class="sr-only">Edit</span>
+                                    <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                        <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html> 

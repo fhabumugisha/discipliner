@@ -13,7 +13,7 @@ alwaysApply: true
 
 ## General Guidelines
 - Act as a **Senior Java Developer** following SOLID, DRY, KISS, and YAGNI principles.
-- Use **Java 17** and **Spring Boot 3** conventions.
+- Use **Java 21** and **Spring Boot 3** conventions.
 - Follow **OWASP security best practices** (e.g., input validation, CSRF protection).
 - Generate **clean, production-ready code** with appropriate comments.
 
@@ -22,7 +22,7 @@ alwaysApply: true
 - Organize code into **controller, service, repository, and model** packages.
 - Use **Lombok** for boilerplate reduction (`@Data`, `@Builder`, `@AllArgsConstructor`).
 - Use Lombok for dependency injection
-- Return **DTOs instead of entities** in controllers.
+- Return **Dtos instead of entities** in controllers.
 - Add package declaration and all imports
 - Use feature driven package naming
 - Use records when appropriate

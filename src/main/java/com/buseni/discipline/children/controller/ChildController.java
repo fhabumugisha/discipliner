@@ -1,0 +1,99 @@
+package com.buseni.discipline.children.controller;
+
+import java.util.List;
+import java.util.UUID;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import com.buseni.discipline.children.dto.ChildDto;
+import com.buseni.discipline.children.service.ChildService;
+
+import io.github.wimdeblauwe.htmx.spring.boot.mvc.HxRequest;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+
+@Controller
+@RequestMapping("/children")
+@RequiredArgsConstructor
+public class ChildController {
+
+    private static final String CHILDREN_MODEL_ATTRIBUTE = "children";
+    private static final String CHILD_DTO_MODEL_ATTRIBUTE = "childDto";
+    private static final String PARENT_ID_MODEL_ATTRIBUTE = "parentId";
+    private static final String EDIT_MODE_ATTRIBUTE = "editMode";
+    private final ChildService childService;
+
+    @GetMapping
+    public String getChildrenPage(Model model) {
+        // We'll get the parent ID from the authenticated user in a real scenario
+        UUID parentId = UUID.randomUUID(); // Temporary for testing
+        List<ChildDto> children = childService.getChildrenByParentId(parentId);
+        
+        model.addAttribute(CHILDREN_MODEL_ATTRIBUTE, children);
+        model.addAttribute(CHILD_DTO_MODEL_ATTRIBUTE, new ChildDto("", "", Integer.valueOf(0)));
+        model.addAttribute(PARENT_ID_MODEL_ATTRIBUTE, parentId);
+        return "children/list";
+    }
+
+    @GetMapping("/{parentId}/{childId}/edit")
+    @HxRequest
+    public String getEditForm(@PathVariable UUID parentId,
+                            @PathVariable String childId,
+                            Model model) {
+        ChildDto childDto = childService.getChildById(childId);
+        model.addAttribute(CHILD_DTO_MODEL_ATTRIBUTE, childDto);
+        model.addAttribute(PARENT_ID_MODEL_ATTRIBUTE, parentId);
+        model.addAttribute(EDIT_MODE_ATTRIBUTE, true);
+        return "children/list :: #childForm";
+    }
+
+    @PostMapping("/{parentId}")
+    @HxRequest
+    public String addChild(@PathVariable UUID parentId,
+                         @Valid @ModelAttribute(CHILD_DTO_MODEL_ATTRIBUTE) ChildDto childDto,
+                         BindingResult bindingResult,
+                         Model model) {
+        
+        if (bindingResult.hasErrors()) {
+            model.addAttribute(CHILDREN_MODEL_ATTRIBUTE, childService.getChildrenByParentId(parentId));
+            model.addAttribute(PARENT_ID_MODEL_ATTRIBUTE, parentId);
+            return "children/list :: #childForm";
+        }
+
+        childService.createChild(parentId, childDto);
+        model.addAttribute(CHILDREN_MODEL_ATTRIBUTE, childService.getChildrenByParentId(parentId));
+        model.addAttribute(CHILD_DTO_MODEL_ATTRIBUTE, new ChildDto("", "", Integer.valueOf(0)));
+        model.addAttribute(PARENT_ID_MODEL_ATTRIBUTE, parentId);
+        return "children/list :: #childrenContainer";
+    }
+
+    @PutMapping("/{parentId}/{childId}")
+    @HxRequest
+    public String updateChild(@PathVariable UUID parentId,
+                            @PathVariable String childId,
+                            @Valid @ModelAttribute(CHILD_DTO_MODEL_ATTRIBUTE) ChildDto childDto,
+                            BindingResult bindingResult,
+                            Model model) {
+        
+        if (bindingResult.hasErrors()) {
+            model.addAttribute(CHILDREN_MODEL_ATTRIBUTE, childService.getChildrenByParentId(parentId));
+            model.addAttribute(PARENT_ID_MODEL_ATTRIBUTE, parentId);
+            model.addAttribute(EDIT_MODE_ATTRIBUTE, true);
+            return "children/list :: #childForm";
+        }
+
+        childService.updateChild(childId, childDto);
+        model.addAttribute(CHILDREN_MODEL_ATTRIBUTE, childService.getChildrenByParentId(parentId));
+        model.addAttribute(CHILD_DTO_MODEL_ATTRIBUTE, new ChildDto("", "", Integer.valueOf(0)));
+        model.addAttribute(PARENT_ID_MODEL_ATTRIBUTE, parentId);
+        return "children/list :: #childrenContainer";
+    }
+} 
