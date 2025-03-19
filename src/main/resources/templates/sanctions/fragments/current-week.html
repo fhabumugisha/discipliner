@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+    <div th:fragment="current-week" class="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-4">
+        <div class="flex flex-col space-y-4">
+            <!-- Week Info -->
+            <div class="flex justify-between items-center">
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+                        <span th:text="#{sanctions.current.week}">Current Week</span>
+                        <span class="text-sm text-gray-500 dark:text-gray-400 ml-2" 
+                              th:text="${#temporals.format(sanction.weekStartDate, 'dd/MM')} + ' - ' + ${#temporals.format(sanction.weekEndDate, 'dd/MM')}">
+                            01/01 - 07/01
+                        </span>
+                    </h3>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">
+                        <span th:text="#{sanctions.next.reset}">Next reset:</span>
+                        <span th:text="${#temporals.format(sanction.nextResetDate, 'dd/MM HH:mm')}">08/01 01:00</span>
+                    </p>
+                </div>
+                <div class="text-right">
+                    <div class="text-2xl font-bold tabular-nums"
+                         th:classappend="${sanction.finalPoints < 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}">
+                        <span th:text="${sanction.finalPoints}">20</span>
+                    </div>
+                    <div class="text-sm text-gray-500 dark:text-gray-400">
+                        <span th:text="#{sanctions.initial.points}">Initial:</span>
+                        <span th:text="${sanction.initialPoints}">20</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sanctions History -->
+            <div class="mt-4" th:if="${not #lists.isEmpty(sanction.sanctions)}">
+                <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2" th:text="#{sanctions.history}">History</h4>
+                <div class="space-y-2">
+                    <div th:each="entry : ${sanction.sanctions}" 
+                         class="flex justify-between items-center p-2 bg-gray-50 dark:bg-gray-700 rounded">
+                        <div class="flex-1">
+                            <p class="text-sm font-medium text-gray-900 dark:text-white" th:text="${entry.ruleDescription}">Rule description</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">
+                                <span th:text="${entry.appliedByName}">Parent</span> -
+                                <span th:text="${#temporals.format(entry.appliedAt, 'dd/MM HH:mm')}">01/01 14:30</span>
+                            </p>
+                        </div>
+                        <div class="text-sm font-semibold tabular-nums"
+                             th:classappend="${entry.points < 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}">
+                            <span th:text="${entry.points}">-5</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- No Sanctions Message -->
+            <div th:if="${#lists.isEmpty(sanction.sanctions)}" 
+                 class="text-center py-4 text-gray-500 dark:text-gray-400">
+                <p th:text="#{sanctions.no.history}">No sanctions applied this week</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html> 

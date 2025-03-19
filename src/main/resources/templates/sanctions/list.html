@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
       layout:decorate="~{layouts/base}"
       lang="en">
 <head>
@@ -15,6 +16,17 @@
                 <p class="mt-2 text-sm sm:text-base text-gray-600 dark:text-gray-400" th:text="#{sanctions.description}">
                     Apply sanctions to children based on predefined rules.
                 </p>
+                <!-- Admin Reset Button -->
+                <div class="mt-4" sec:authorize="hasRole('ADMIN')">
+                    <form th:action="@{/sanctions/reset}" method="post" class="inline-block">
+                        <button type="submit"
+                                class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md
+                                       text-white bg-blue-600 hover:bg-blue-700 
+                                       focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            <span th:text="#{sanctions.manual.reset}">Manual Reset</span>
+                        </button>
+                    </form>
+                </div>
             </div>
 
             <!-- Rules Grid -->
@@ -41,20 +53,48 @@
             </div>
 
             <!-- Children List -->
-            <div class="bg-white dark:bg-gray-800 shadow sm:rounded-lg overflow-hidden">
+            <div class="bg-white dark:bg-gray-800 shadow sm:rounded-lg overflow-hidden" th:if="${not #lists.isEmpty(children)}">
                 <ul role="list" class="divide-y divide-gray-200 dark:divide-gray-700">
-                    <li th:each="child : ${children}" class="p-3 sm:p-4 md:p-6">
+                    <li th:each="child, iterStat : ${children}" class="p-3 sm:p-4 md:p-6">
                         <div class="flex flex-col space-y-4">
-                            <div class="flex items-center">
-                                <div class="flex-shrink-0">
-                                    <div class="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900 dark:to-blue-800 flex items-center justify-center shadow-inner">
-                                        <span class="text-base sm:text-lg font-semibold text-blue-600 dark:text-blue-300" th:text="${#strings.substring(child.name, 0, 1)}">A</span>
+                            <!-- Child Info -->
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0">
+                                        <div class="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900 dark:to-blue-800 flex items-center justify-center shadow-inner">
+                                            <span class="text-base sm:text-lg font-semibold text-blue-600 dark:text-blue-300" th:text="${#strings.substring(child.name, 0, 1)}">A</span>
+                                        </div>
+                                    </div>
+                                    <div class="ml-3 sm:ml-4">
+                                        <h3 class="text-base sm:text-lg font-medium text-gray-900 dark:text-white" th:text="${child.name}">Child name</h3>
+                                        <div th:if="${not #lists.isEmpty(weeklySanctions)}" th:with="weeklySanction=${weeklySanctions[iterStat.index]}" th:id="${'points-' + child.id}" class="mt-1">
+                                            <span class="text-sm text-gray-500 dark:text-gray-400" th:text="#{sanctions.points}">Points</span>:
+                                            <span class="text-base font-semibold tabular-nums"
+                                                  th:classappend="${weeklySanction.finalPoints < 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}"
+                                                  th:text="${weeklySanction.finalPoints}">20</span>
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="ml-3 sm:ml-4">
-                                    <h3 class="text-base sm:text-lg font-medium text-gray-900 dark:text-white" th:text="${child.name}">Child name</h3>
-                                    <div th:replace="~{sanctions/fragments/child-points :: points}"></div>
-                                </div>
+                                <!-- History Link -->
+                                <a th:href="@{/sanctions/history/{id}(id=${child.id})}" 
+                                   class="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">
+                                    <span th:text="#{sanctions.view.history}">View History</span>
+                                </a>
+                            </div>
+
+                            <!-- Current Week Info -->
+                            <div th:if="${not #lists.isEmpty(weeklySanctions)}" th:with="weeklySanction=${weeklySanctions[iterStat.index]}" class="text-sm text-gray-500 dark:text-gray-400 flex justify-between items-center">
+                                <span>
+                                    <span th:text="#{sanctions.current.week}">Current Week</span>
+                                    <span class="ml-2" 
+                                          th:text="${#temporals.format(weeklySanction.weekStartDate, 'dd/MM')} + ' - ' + ${#temporals.format(weeklySanction.weekEndDate, 'dd/MM')}">
+                                        01/01 - 07/01
+                                    </span>
+                                </span>
+                                <span>
+                                    <span th:text="#{sanctions.next.reset}">Next reset:</span>
+                                    <span th:text="${#temporals.format(weeklySanction.nextResetDate, 'dd/MM HH:mm')}">08/01 01:00</span>
+                                </span>
                             </div>
                             
                             <!-- Sanction Actions -->
@@ -62,7 +102,7 @@
                                 <div th:each="rule : ${rules}" 
                                      class="relative group">
                                     <button th:hx-put="@{/sanctions/{childId}/rule/{ruleCode}(childId=${child.id},ruleCode=${rule.code()})}"
-                                            th:hx-target="${'#points-' + child.id}"
+                                            th:hx-target="'#points-' + ${child.id}"
                                             th:hx-swap="'innerHTML'"
                                             class="inline-flex items-center min-w-[3rem] px-3 py-2.5 sm:py-2 border border-transparent text-sm font-medium rounded-md
                                                    text-white bg-red-600 hover:bg-red-700 
@@ -81,9 +121,36 @@
                                     </div>
                                 </div>
                             </div>
+
+                            <!-- Recent Sanctions -->
+                            <div th:if="${not #lists.isEmpty(weeklySanctions) and not #lists.isEmpty(weeklySanctions[iterStat.index].sanctions)}" 
+                                 th:with="weeklySanction=${weeklySanctions[iterStat.index]}" 
+                                 class="mt-2 space-y-2">
+                                <div th:each="entry : ${weeklySanction.sanctions}" 
+                                     class="flex justify-between items-center p-2 bg-gray-50 dark:bg-gray-700 rounded">
+                                    <div class="flex-1">
+                                        <p class="text-sm font-medium text-gray-900 dark:text-white" th:text="${entry.ruleDescription}">Rule description</p>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400" th:text="${#temporals.format(entry.appliedAt, 'dd/MM HH:mm')}">01/01 14:30</p>
+                                    </div>
+                                    <div class="text-sm font-semibold tabular-nums"
+                                         th:classappend="${entry.points < 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}">
+                                        <span th:text="${entry.points}">-5</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </li>
                 </ul>
+            </div>
+
+            <!-- No Children Message -->
+            <div th:if="${#lists.isEmpty(children)}" 
+                 class="text-center py-8">
+                <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+                    <p class="text-gray-500 dark:text-gray-400" th:text="#{sanctions.no.children}">
+                        No children found
+                    </p>
+                </div>
             </div>
         </div>
     </div>
