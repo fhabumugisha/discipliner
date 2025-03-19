@@ -11,6 +11,10 @@ env:
   IMAGE_NAME: ${{ vars.IMAGE_NAME }}
   SERVICE_NAME: ${{ vars.SERVICE_NAME }}
   GCP_REGION: ${{ vars.GCP_REGION }}
+  POSTGRES_URL: ${{ vars.POSTGRES_URL }}
+  POSTGRES_USER: ${{ secrets.DB_USERNAME }}
+  POSTGRES_PASSWORD: ${{ secrets.DB_PASSWORD }}
+  POSTGRES_DB: ${{ vars.POSTGRES_DB }}
 
 jobs:
   build-and-deploy:
@@ -21,11 +25,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up JDK 17
+      - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '17'
+          java-version: '21'
           cache: 'maven'
 
       - name: Build with Maven
@@ -53,10 +57,7 @@ jobs:
           region: ${{ env.GCP_REGION }}
           flags: '--allow-unauthenticated'
           env_vars: |
-            AWS_ACCESS_KEY=${{ secrets.AWS_ACCESS_KEY }}
-            AWS_SECRET_KEY=${{ secrets.AWS_SECRET_KEY }}
-            AWS_S3_BUCKET_NAME=${{ vars.AWS_S3_BUCKET_NAME }}
-            AWS_S3_REGION=${{ vars.AWS_S3_REGION }}
-            DB_USERNAME=${{ secrets.DB_USERNAME }}
-            DB_PASSWORD=${{ secrets.DB_PASSWORD }}
-            DB_NAME=${{ vars.DB_NAME }} 
+            POSTGRES_URL=${{ env.POSTGRES_URL }}
+            POSTGRES_USER=${{ env.POSTGRES_USER }}
+            POSTGRES_PASSWORD=${{ env.POSTGRES_PASSWORD }}
+            POSTGRES_DB=${{ env.POSTGRES_DB }}
