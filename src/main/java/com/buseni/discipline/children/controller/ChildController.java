@@ -41,7 +41,7 @@ public class ChildController {
         List<ChildDto> children = childService.getChildrenByParentId(parentId);
         
         model.addAttribute(CHILDREN_MODEL_ATTRIBUTE, children);
-        model.addAttribute(CHILD_DTO_MODEL_ATTRIBUTE, new ChildDto("", "", Integer.valueOf(0)));
+        model.addAttribute(CHILD_DTO_MODEL_ATTRIBUTE, new ChildDto("", "", Integer.valueOf(0), Integer.valueOf(0)));
         model.addAttribute(PARENT_ID_MODEL_ATTRIBUTE, parentId);
         return "children/list";
     }
@@ -73,7 +73,7 @@ public class ChildController {
 
         childService.createChild(parentId, childDto);
         model.addAttribute(CHILDREN_MODEL_ATTRIBUTE, childService.getChildrenByParentId(parentId));
-        model.addAttribute(CHILD_DTO_MODEL_ATTRIBUTE, new ChildDto("", "", Integer.valueOf(0)));
+        model.addAttribute(CHILD_DTO_MODEL_ATTRIBUTE, new ChildDto("", "", Integer.valueOf(0), Integer.valueOf(0)));
         model.addAttribute(PARENT_ID_MODEL_ATTRIBUTE, parentId);
         return "children/list :: #childrenContainer";
     }
@@ -95,7 +95,7 @@ public class ChildController {
 
         childService.updateChild(childId, childDto);
         model.addAttribute(CHILDREN_MODEL_ATTRIBUTE, childService.getChildrenByParentId(parentId));
-        model.addAttribute(CHILD_DTO_MODEL_ATTRIBUTE, new ChildDto("", "", Integer.valueOf(0)));
+        model.addAttribute(CHILD_DTO_MODEL_ATTRIBUTE, new ChildDto("", "", Integer.valueOf(0), Integer.valueOf(0)));
         model.addAttribute(PARENT_ID_MODEL_ATTRIBUTE, parentId);
         return "children/list :: #childrenContainer";
     }

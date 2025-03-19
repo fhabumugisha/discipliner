@@ -23,4 +23,6 @@ public class ChildDto {
     @Min(value = 0, message = "{validation.child.age.min}")
     private Integer age;
 
+    @Builder.Default
+    private int points = 0;
 }

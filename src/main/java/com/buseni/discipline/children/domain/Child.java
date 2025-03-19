@@ -33,6 +33,10 @@ public class Child {
     @Field("age")
     private Integer age;
 
+    @Field("points")
+    @Builder.Default
+    private int points = 0;
+
     @Indexed
     @Field("parent_id")
     private String parentId;

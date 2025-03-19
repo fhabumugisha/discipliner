@@ -1,0 +1,10 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+    <div th:fragment="points" class="text-lg font-semibold">
+        <span th:text="#{sanctions.points}">Points</span>: 
+        <span th:class="${child.points < 0 ? 'text-red-600' : 'text-green-600'}"
+              th:text="${child.points}">0</span>
+    </div>
+</body>
+</html> 

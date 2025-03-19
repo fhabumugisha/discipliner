@@ -61,7 +61,8 @@ public class ChildServiceImpl implements ChildService {
         return new ChildDto(
             child.getId(),
             child.getName(),
-            child.getAge()
+            child.getAge(),
+            child.getPoints()
         );
     }
 } 

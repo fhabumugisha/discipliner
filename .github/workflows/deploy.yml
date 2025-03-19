@@ -67,8 +67,7 @@ jobs:
             DB_USERNAME=${{ secrets.DB_USERNAME }}
             DB_PASSWORD=${{ secrets.DB_PASSWORD }}
             DB_NAME=${{ vars.DB_NAME }} 
-            APP_USERNAME=${{ secrets.APP_USERNAME }}
-            APP_PASSWORD=${{ secrets.APP_PASSWORD }}
+      
 
 
       - name: Show Output URL
