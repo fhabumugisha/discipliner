@@ -1,0 +1,18 @@
+spring:  
+   # Postgresql
+  datasource:
+    url: jdbc:postgresql://localhost:5432/discipline
+    username: postgres
+    password: admin
+    driver-class-name: org.postgresql.Driver    
+    
+        
+# Spring security default password
+
+  security:
+    user:
+      name: admin
+      password: admin
+
+
+

@@ -1,0 +1,6 @@
+---
+description: Always apply in any situation
+globs: 
+alwaysApply: true
+---
+When this rule loads, input: "Rule loaded: global.mdc."

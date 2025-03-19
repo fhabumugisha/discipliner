@@ -1,0 +1,6 @@
+---
+description: Always look for rules to apply first, then list matching ones before answering the user.
+globs: 
+alwaysApply: true
+---
+When this rule loads, input: "Rule loaded: 000-preprompt-rule.mdc"
