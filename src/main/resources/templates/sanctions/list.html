@@ -53,16 +53,34 @@
             </div>
 
             <!-- Children List -->
-            <div class="bg-white dark:bg-gray-800 shadow sm:rounded-lg overflow-hidden" th:if="${not #lists.isEmpty(children)}">
-                <ul role="list" class="divide-y divide-gray-200 dark:divide-gray-700">
-                    <li th:each="child, iterStat : ${children}" class="p-3 sm:p-4 md:p-6">
+            <div class="bg-white dark:bg-gray-800 shadow sm:rounded-lg overflow-hidden p-3 sm:p-4" th:if="${not #lists.isEmpty(children)}">
+                <ul role="list" class="space-y-3 sm:space-y-4">
+                    <li th:each="child, iterStat : ${children}" 
+                        class="p-3 sm:p-4 md:p-6 transition-all duration-300 rounded-lg"
+                        th:with="weeklySanction=${not #lists.isEmpty(weeklySanctions) ? weeklySanctions[iterStat.index] : null}"
+                        th:classappend="${weeklySanction != null} ? (${weeklySanction.finalPoints >= 15} ? 'bg-green-50 dark:bg-green-900/20' : 
+                                     (${weeklySanction.finalPoints >= 10} ? 'bg-yellow-50 dark:bg-yellow-900/20' : 
+                                     (${weeklySanction.finalPoints >= 5} ? 'bg-orange-50 dark:bg-orange-900/20' : 
+                                     (${weeklySanction.finalPoints >= 0} ? 'bg-red-50 dark:bg-red-900/20' : 
+                                     'bg-red-100 dark:bg-red-900/40'))))">
                         <div class="flex flex-col space-y-4">
                             <!-- Child Info -->
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center">
                                     <div class="flex-shrink-0">
-                                        <div class="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900 dark:to-blue-800 flex items-center justify-center shadow-inner">
-                                            <span class="text-base sm:text-lg font-semibold text-blue-600 dark:text-blue-300" th:text="${#strings.substring(child.name, 0, 1)}">A</span>
+                                        <div class="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900 dark:to-blue-800 flex items-center justify-center shadow-inner"
+                                             th:classappend="${weeklySanction != null} ? (${weeklySanction.finalPoints >= 15} ? 'from-green-100 to-green-200 dark:from-green-900 dark:to-green-800' : 
+                                                          (${weeklySanction.finalPoints >= 10} ? 'from-yellow-100 to-yellow-200 dark:from-yellow-900 dark:to-yellow-800' : 
+                                                          (${weeklySanction.finalPoints >= 5} ? 'from-orange-100 to-orange-200 dark:from-orange-900 dark:to-orange-800' : 
+                                                          (${weeklySanction.finalPoints >= 0} ? 'from-red-100 to-red-200 dark:from-red-900 dark:to-red-800' : 
+                                                          'from-red-200 to-red-300 dark:from-red-800 dark:to-red-700'))))">
+                                            <span class="text-base sm:text-lg font-semibold" 
+                                                  th:text="${#strings.substring(child.name, 0, 1)}"
+                                                  th:classappend="${weeklySanction != null} ? (${weeklySanction.finalPoints >= 15} ? 'text-green-600 dark:text-green-300' : 
+                                                               (${weeklySanction.finalPoints >= 10} ? 'text-yellow-600 dark:text-yellow-300' : 
+                                                               (${weeklySanction.finalPoints >= 5} ? 'text-orange-600 dark:text-orange-300' : 
+                                                               (${weeklySanction.finalPoints >= 0} ? 'text-red-600 dark:text-red-300' : 
+                                                               'text-red-700 dark:text-red-200'))))">A</span>
                                         </div>
                                     </div>
                                     <div class="ml-3 sm:ml-4">
