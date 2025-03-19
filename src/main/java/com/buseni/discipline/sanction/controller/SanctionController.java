@@ -41,6 +41,8 @@ public class SanctionController {
         model.addAttribute("rules", rules);
 
         User user = (User) userDetails;
+        model.addAttribute("connectedUserName", user.getUsername());
+        
         List<ChildDto> children = childService.getChildrenByParentId(user.getId());
         
         if (!children.isEmpty()) {
@@ -82,6 +84,8 @@ public class SanctionController {
             User user = (User) userDetails;
             var updatedSanction = weeklySanctionService.applySanction(childId, ruleCode, user.getId());
             model.addAttribute("weeklySanction", updatedSanction);
+            model.addAttribute("child", childService.getChildById(childId));
+            model.addAttribute("rules", regleDisciplineService.getAllRules());
             return "sanctions/fragments/child-points :: points";
         } catch (Exception e) {
             log.error("Error applying sanction for child {} with rule {}: {}", childId, ruleCode, e.getMessage());
@@ -90,6 +94,8 @@ public class SanctionController {
                 weeklySanctionService.initializeWeeklyPoints();
                 var updatedSanction = weeklySanctionService.applySanction(childId, ruleCode, ((User) userDetails).getId());
                 model.addAttribute("weeklySanction", updatedSanction);
+                model.addAttribute("child", childService.getChildById(childId));
+                model.addAttribute("rules", regleDisciplineService.getAllRules());
                 return "sanctions/fragments/child-points :: points";
             } catch (Exception ex) {
                 log.error("Failed to apply sanction after initialization: {}", ex.getMessage());

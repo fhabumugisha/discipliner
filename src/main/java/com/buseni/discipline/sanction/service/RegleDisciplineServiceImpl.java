@@ -10,7 +10,9 @@ import com.buseni.discipline.sanction.domain.RegleDiscipline;
 @Service
 public class RegleDisciplineServiceImpl implements RegleDisciplineService {
 
+    //Ajout moins 1 point pour une petite betise
     private static final List<RegleDiscipline> RULES = List.of(
+        new RegleDiscipline("SMALL_MISCONDUCT", "Petite betise", -1),
         new RegleDiscipline("BAD_GRADE", "Mauvaise note", -3),
         new RegleDiscipline("DISOBEDIENCE", "Désobéissance", -5),
         new RegleDiscipline("BAD_BEHAVIOR", "Très mauvaise conduite", -10)
