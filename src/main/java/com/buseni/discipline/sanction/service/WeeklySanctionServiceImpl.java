@@ -19,6 +19,8 @@ import com.buseni.discipline.sanction.domain.WeeklySanction;
 import com.buseni.discipline.sanction.dto.SanctionHistoryDto;
 import com.buseni.discipline.sanction.dto.WeeklySanctionDto;
 import com.buseni.discipline.sanction.repository.WeeklySanctionRepository;
+import com.buseni.discipline.users.domain.User;
+import com.buseni.discipline.users.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,6 +36,7 @@ public class WeeklySanctionServiceImpl implements WeeklySanctionService {
     private final WeeklySanctionRepository weeklySanctionRepository;
     private final ChildRepository childRepository;
     private final RegleDisciplineService regleDisciplineService;
+    private final UserRepository userRepository;
 
     @Override
     @Scheduled(cron = "0 0 1 ? * MON", zone = "Europe/Paris") // Every Monday at 1 AM Paris time
@@ -161,14 +164,20 @@ public class WeeklySanctionServiceImpl implements WeeklySanctionService {
             .orElseThrow(() -> new IllegalArgumentException("Child not found: " + sanction.getChildId()));
             
         List<SanctionHistoryDto> sanctionDtos = sanction.getSanctions().stream()
-            .map(s -> new SanctionHistoryDto(
-                s.ruleCode(),
-                s.ruleDescription(),
-                s.points(),
-                s.appliedAt(),
-                s.appliedBy(),
-                "Parent" // TODO: Get actual user name
-            ))
+            .map(s -> {
+                String appliedByName = userRepository.findById(s.appliedBy())
+                    .map(user -> user.getFirstName() + " " + user.getLastName())
+                    .orElse("Unknown");
+                    
+                return new SanctionHistoryDto(
+                    s.ruleCode(),
+                    s.ruleDescription(),
+                    s.points(),
+                    s.appliedAt(),
+                    s.appliedBy(),
+                    appliedByName
+                );
+            })
             .toList();
             
         // Calculate next reset date
