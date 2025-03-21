@@ -1,10 +1,10 @@
 package com.buseni.discipline.sanction.controller;
 
+import java.security.Principal;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,114 +14,134 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.buseni.discipline.children.dto.ChildDto;
 import com.buseni.discipline.children.service.ChildService;
+import com.buseni.discipline.sanction.dto.ChildSanctionViewDto;
 import com.buseni.discipline.sanction.dto.WeeklySanctionDto;
 import com.buseni.discipline.sanction.service.RegleDisciplineService;
 import com.buseni.discipline.sanction.service.WeeklySanctionService;
-import com.buseni.discipline.users.domain.User;
 
-import io.github.wimdeblauwe.htmx.spring.boot.mvc.HxRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Controller
 @RequestMapping("/sanctions")
 @RequiredArgsConstructor
-@Slf4j
 public class SanctionController {
-
-    private static final String    SANCTIONS_FRAGMENTS_CHILD_POINTS_POINTS = "sanctions/fragments/child-points :: points";
-    private static final String    WEEKLY_SANCTION = "weeklySanction";
-    private static final String    CHILD = "child";
-    private static final String    RULES = "rules";
-    private static final String    CONNECTED_USER_NAME = "connectedUserName";
+    // Constants for model attributes
+    private static final String CHILDREN_ATTR = "children";
+    private static final String WEEKLY_SANCTIONS_ATTR = "weeklySanctions";
+    private static final String RULES_ATTR = "rules";
+    private static final String CHILD_SANCTIONS = "childSanctions";
+    
+    // Dependencies
     private final ChildService childService;
-    private final RegleDisciplineService regleDisciplineService;
     private final WeeklySanctionService weeklySanctionService;
-
+    private final RegleDisciplineService regleDisciplineService;
+    
+    /**
+     * Get the sanctions list page
+     */
     @GetMapping
-    public String getSanctionsPage(Model model, @AuthenticationPrincipal UserDetails userDetails) {
+    public String getSanctionsPage(Model model, Principal principal) {
+        // Get the children for the current user
+        List<ChildDto> children = childService.getChildrenByParentId(principal.getName());
+        
+        // Get the weekly sanctions for all children for the current week
+        List<WeeklySanctionDto> weeklySanctions = children.stream()
+            .map(child -> {
+                try {
+                    return weeklySanctionService.getCurrentWeekSanction(child.getId());
+                } catch (Exception e) {
+                    log.error("Error getting weekly sanction for child {}: {}", child.getId(), e.getMessage());
+                    return null;
+                }
+            })
+            .filter(sanction -> sanction != null)
+            .collect(Collectors.toList());
+        
+        // Create a map for easy lookup of sanctions by child ID
+        Map<String, WeeklySanctionDto> sanctionsByChildId = weeklySanctions.stream()
+            .collect(Collectors.toMap(WeeklySanctionDto::childId, sanction -> sanction));
+        
+        // Create a combined DTO for each child with their sanctions
+        List<ChildSanctionViewDto> childSanctions = children.stream()
+            .map(child -> new ChildSanctionViewDto(
+                child, 
+                sanctionsByChildId.get(child.getId())
+            ))
+            .toList();
+        
+        // Get the rules
         var rules = regleDisciplineService.getAllRules();
-        model.addAttribute(RULES, rules);
-
-        User user = (User) userDetails;
-        model.addAttribute(CONNECTED_USER_NAME, user.getUsername());
         
-        List<ChildDto> children = childService.getChildrenByParentId(user.getId());
+        // Add everything to the model
+        model.addAttribute(CHILDREN_ATTR, children);
+        model.addAttribute(WEEKLY_SANCTIONS_ATTR, weeklySanctions);
+        model.addAttribute(RULES_ATTR, rules);
+        model.addAttribute(CHILD_SANCTIONS, childSanctions);
         
-        if (!children.isEmpty()) {
-            // Get weekly sanctions for each child
-            List<WeeklySanctionDto> weeklySanctions = children.stream()
-                .map(child -> {
-                    try {
-                        return weeklySanctionService.getCurrentWeekSanction(child.getId());
-                    } catch (Exception e) {
-                        log.error("Error getting weekly sanction for child {}: {}", child.getId(), e.getMessage());
-                        try {
-                            // Initialize weekly points for this child
-                            weeklySanctionService.initializeWeeklyPoints();
-                            return weeklySanctionService.getCurrentWeekSanction(child.getId());
-                        } catch (Exception ex) {
-                            log.error("Failed to initialize weekly points for child {}: {}", child.getId(), ex.getMessage());
-                            return null;
-                        }
-                    }
-                })
-                .filter(sanction -> sanction != null)
-                .collect(Collectors.toList());
-            
-            model.addAttribute("weeklySanctions", weeklySanctions);
-        }
-        
-        model.addAttribute("children", children);
         return "sanctions/list";
     }
 
-    @PutMapping("/{childId}/rule/{ruleCode}")
-    @HxRequest
+    /**
+     * Apply a sanction by rule
+     */
+    @PutMapping("/{childId}/rules/{ruleCode}")
     public String applySanctionByRule(
             @PathVariable String childId,
             @PathVariable String ruleCode,
-            Model model,
-            @AuthenticationPrincipal UserDetails userDetails) {
-        try {
-            User user = (User) userDetails;
-            var updatedSanction = weeklySanctionService.applySanction(childId, ruleCode, user.getId());
-            model.addAttribute(WEEKLY_SANCTION, updatedSanction);
-            model.addAttribute(CHILD, childService.getChildById(childId));
-            model.addAttribute(RULES, regleDisciplineService.getAllRules());
-            return SANCTIONS_FRAGMENTS_CHILD_POINTS_POINTS;
-        } catch (Exception e) {
-            log.error("Error applying sanction for child {} with rule {}: {}", childId, ruleCode, e.getMessage());
-            // Try to initialize weekly points and retry
-            try {
-                weeklySanctionService.initializeWeeklyPoints();
-                var updatedSanction = weeklySanctionService.applySanction(childId, ruleCode, ((User) userDetails).getId());
-                model.addAttribute(WEEKLY_SANCTION, updatedSanction);
-                model.addAttribute(CHILD, childService.getChildById(childId));
-                model.addAttribute(RULES, regleDisciplineService.getAllRules());
-                return SANCTIONS_FRAGMENTS_CHILD_POINTS_POINTS;
-            } catch (Exception ex) {
-                log.error("Failed to apply sanction after initialization: {}", ex.getMessage());
-                throw ex;
-            }
-        }
+            Principal principal,
+            Model model) {
+        
+        log.debug("Applying sanction rule {} to child {}", ruleCode, childId);
+        
+        // Apply the sanction
+        WeeklySanctionDto weeklySanction = weeklySanctionService.applySanction(childId, ruleCode, principal.getName());
+        
+        // Get the child
+        ChildDto child = childService.getChildById(childId);
+        
+        // Get the rules
+        var rules = regleDisciplineService.getAllRules();
+        
+        // Create a ChildSanctionViewDto
+        ChildSanctionViewDto childSanction = new ChildSanctionViewDto(child, weeklySanction);
+        
+        // Add attributes to the model
+        model.addAttribute("childSanction", childSanction);
+        model.addAttribute("rules", rules);
+        
+        return "sanctions/fragments/child-points :: points";
     }
-
+    
+    /**
+     * Apply a manual points adjustment
+     */
     @PutMapping("/{childId}/points/{points}")
-    @HxRequest
     public String applySanction(
             @PathVariable String childId,
-            @PathVariable int points,
-            Model model,
-            @AuthenticationPrincipal UserDetails userDetails) {
-        try {
-            User user = (User) userDetails;
-            var updatedSanction = weeklySanctionService.applySanction(childId, String.valueOf(points), user.getId());
-            model.addAttribute(WEEKLY_SANCTION, updatedSanction);
-            return SANCTIONS_FRAGMENTS_CHILD_POINTS_POINTS;
-        } catch (Exception e) {
-            log.error("Error applying points sanction for child {}: {}", childId, e.getMessage());
-            throw e;
-        }
+            @PathVariable Integer points,
+            Principal principal,
+            Model model) {
+        
+        log.debug("Applying points {} to child {}", points, childId);
+        
+        // Apply the points - treat points value as a rule code
+        WeeklySanctionDto weeklySanction = weeklySanctionService.applySanction(childId, String.valueOf(points), principal.getName());
+        
+        // Get the child
+        ChildDto child = childService.getChildById(childId);
+        
+        // Get the rules
+        var rules = regleDisciplineService.getAllRules();
+        
+        // Create a ChildSanctionViewDto
+        ChildSanctionViewDto childSanction = new ChildSanctionViewDto(child, weeklySanction);
+        
+        // Add attributes to the model
+        model.addAttribute("childSanction", childSanction);
+        model.addAttribute("rules", rules);
+        
+        return "sanctions/fragments/child-points :: points";
     }
 } 

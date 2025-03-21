@@ -15,4 +15,21 @@ public record WeeklySanctionDto(
     Integer finalPoints,
     List<SanctionHistoryDto> sanctions,
     LocalDateTime nextResetDate
-) {} 
+) {
+    /**
+     * Returns the current points (alias for finalPoints)
+     * @return current points value
+     */
+    public Integer currentPoints() {
+        return finalPoints;
+    }
+    
+    @Override
+    public String toString() {
+        return "WeeklySanctionDto[id=" + id + 
+               ", childId=" + childId + 
+               ", childName=" + childName + 
+               ", weekNumber=" + weekNumber + 
+               ", finalPoints=" + finalPoints + "]";
+    }
+} 
