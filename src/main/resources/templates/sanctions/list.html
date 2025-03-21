@@ -54,22 +54,22 @@
                     <div th:each="child : ${children}" class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
                         <div class="px-4 py-5 sm:p-6">
                             <div class="flex items-center justify-between mb-4">
-                                <h2 class="text-xl font-bold text-gray-900 dark:text-white" th:text="${child.firstName}">Child Name</h2>
-                                <span class="text-sm text-gray-500 dark:text-gray-400" th:text="${child.age + ' ' + #{sanctions.years}}">Age</span>
+                                <h2 class="text-xl font-bold text-gray-900 dark:text-white" th:text="${child.firstName()}">Child Name</h2>
+                                <span class="text-sm text-gray-500 dark:text-gray-400" th:text="${child.age()} + ' ' + #{sanctions.years}">Age</span>
                             </div>
                             
                             <!-- Points display - will be replaced by fragments -->
-                            <div th:replace="~{sanctions/fragments/child-points :: points(weeklySanction=${weeklySanctions.stream().filter(ws -> ws.childId == child.id).findFirst().orElse(null)}, child=${child}, rules=${rules})}"></div>
+                            <div th:replace="~{sanctions/fragments/child-points :: points(weeklySanction=${weeklySanctions.stream().filter(ws -> ws.childId() == child.id()).findFirst().orElse(null)}, child=${child}, rules=${rules})}"></div>
                             
                             <!-- Quick sanction actions -->
                             <div class="mt-4 border-t pt-4">
                                 <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2" th:text="#{sanctions.quick.actions}">Quick Actions</h3>
                                 <div class="flex flex-wrap gap-2">
                                     <button th:each="rule : ${rules}"
-                                            th:text="${rule.code}"
-                                            th:title="${rule.description}"
-                                            th:attr="hx-put=@{/sanctions/{childId}/rule/{ruleCode}(childId=${child.id}, ruleCode=${rule.code})},
-                                                   hx-target='#points-' + ${child.id},
+                                            th:text="${rule.code()}"
+                                            th:title="${rule.description()}"
+                                            th:attr="hx-put=@{/sanctions/{childId}/rule/{ruleCode}(childId=${child.id()}, ruleCode=${rule.code()})},
+                                                   hx-target='#points-' + ${child.id()},
                                                    hx-swap='outerHTML'"
                                             class="px-2 py-1 text-xs font-medium rounded-md text-white bg-red-600 hover:bg-red-700 transition-colors duration-150">
                                         Rule Code
@@ -91,8 +91,8 @@
                     <div class="border-t border-gray-200 dark:border-gray-700 px-4 py-5 sm:p-0">
                         <dl class="sm:divide-y sm:divide-gray-200 dark:sm:divide-gray-700">
                             <div th:each="rule : ${rules}" class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                                <dt class="text-sm font-medium text-gray-500 dark:text-gray-400" th:text="${rule.code}">Rule Code</dt>
-                                <dd class="mt-1 text-sm text-gray-900 dark:text-white sm:mt-0 sm:col-span-2" th:text="${rule.description}">Rule Description</dd>
+                                <dt class="text-sm font-medium text-gray-500 dark:text-gray-400" th:text="${rule.code()}">Rule Code</dt>
+                                <dd class="mt-1 text-sm text-gray-900 dark:text-white sm:mt-0 sm:col-span-2" th:text="${rule.description()}">Rule Description</dd>
                             </div>
                         </dl>
                     </div>

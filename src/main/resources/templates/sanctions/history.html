@@ -38,7 +38,7 @@
                                 <label for="child" class="block text-sm font-medium text-gray-700 dark:text-gray-300" th:text="#{sanctions.filter.child}">Child</label>
                                 <select id="child" name="childId" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white">
                                     <option value="" th:text="#{sanctions.filter.all.children}">All Children</option>
-                                    <option th:each="child : ${children}" th:value="${child.id}" th:text="${child.firstName}" th:selected="${param.childId != null && param.childId[0] == child.id}">Child Name</option>
+                                    <option th:each="child : ${children}" th:value="${child.id()}" th:text="${child.firstName()}" th:selected="${param.childId != null && param.childId[0] == child.id()}">Child Name</option>
                                 </select>
                             </div>
 
@@ -92,15 +92,15 @@
                                 </thead>
                                 <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                                     <tr th:each="record : ${sanctionHistory}">
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400" th:text="${#temporals.format(record.appliedAt, 'dd MMM yyyy, HH:mm')}">01 Jan 2023, 12:34</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white" th:text="${record.childName}">Child Name</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400" th:text="${#temporals.format(record.appliedAt(), 'dd MMM yyyy, HH:mm')}">01 Jan 2023, 12:34</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white" th:text="${record.childName()}">Child Name</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                                            <span th:if="${record.ruleCode != null}" class="px-2 py-1 text-xs rounded-full bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200" th:text="${record.ruleCode}">R01</span>
-                                            <span th:if="${record.ruleCode == null}" th:class="${record.pointsChange &gt; 0 ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200' : 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200'}" class="px-2 py-1 text-xs rounded-full" th:text="${record.pointsChange &gt; 0 ? '+' + record.pointsChange : record.pointsChange}">-5</span>
+                                            <span th:if="${record.ruleCode() != null}" class="px-2 py-1 text-xs rounded-full bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200" th:text="${record.ruleCode()}">R01</span>
+                                            <span th:if="${record.ruleCode() == null}" th:class="${record.pointsChange() &gt; 0 ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200' : 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200'}" class="px-2 py-1 text-xs rounded-full" th:text="${record.pointsChange() &gt; 0 ? '+' + record.pointsChange() : record.pointsChange()}">-5</span>
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400" th:text="${record.pointsBefore}">85</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400" th:text="${record.pointsAfter}">80</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400" th:text="${record.appliedByName}">Parent Name</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400" th:text="${record.pointsBefore()}">85</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400" th:text="${record.pointsAfter()}">80</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400" th:text="${record.appliedByName()}">Parent Name</td>
                                     </tr>
                                 </tbody>
                             </table>
