@@ -5,7 +5,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -44,9 +43,7 @@ public class SanctionController {
      * Get the sanctions list page
      */
     @GetMapping
-    public String getSanctionsPage(Model model, @AuthenticationPrincipal UserDetails userDetails) {
-        User user = (User) userDetails;
-        
+    public String getSanctionsPage(Model model, @AuthenticationPrincipal User user) {
         // Get the children for the current user
         List<ChildDto> children = childService.getChildrenByParentId(user.getId());
         
@@ -94,10 +91,9 @@ public class SanctionController {
     public String applySanctionByRule(
             @PathVariable String childId,
             @PathVariable String ruleCode,
-            @AuthenticationPrincipal UserDetails userDetails,
+            @AuthenticationPrincipal User user,
             Model model) {
         
-        User user = (User) userDetails;
         log.debug("Applying sanction rule {} to child {}", ruleCode, childId);
         
         // Apply the sanction
@@ -126,10 +122,9 @@ public class SanctionController {
     public String applySanction(
             @PathVariable String childId,
             @PathVariable Integer points,
-            @AuthenticationPrincipal UserDetails userDetails,
+            @AuthenticationPrincipal User user,
             Model model) {
         
-        User user = (User) userDetails;
         log.debug("Applying points {} to child {}", points, childId);
         
         // Apply the points - treat points value as a rule code
