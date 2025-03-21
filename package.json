@@ -2,15 +2,23 @@
   "name": "discipline-app",
   "version": "1.0.0",
   "description": "Frontend assets for Discipline App",
+  "type": "module",
   "scripts": {
-    "build": "tailwindcss -i ./src/main/resources/static/css/input.css -o ./src/main/resources/static/css/styles.css --minify",
-    "build-prod": "cross-env NODE_ENV=production tailwindcss -i ./src/main/resources/static/css/input.css -o ./src/main/resources/static/css/styles.css --minify",
-    "watch": "tailwindcss -i ./src/main/resources/static/css/input.css -o ./src/main/resources/static/css/styles.css --watch"
+    "build": "postcss ./src/main/resources/static/css/input.css -o ./src/main/resources/static/css/styles.css --minify",
+    "build-prod": "cross-env NODE_ENV=production postcss ./src/main/resources/static/css/input.css -o ./src/main/resources/static/css/styles.css --minify",
+    "watch": "postcss ./src/main/resources/static/css/input.css -o ./src/main/resources/static/css/styles.css --watch"
   },
   "devDependencies": {
     "@tailwindcss/forms": "^0.5.10",
     "@tailwindcss/typography": "^0.5.16",
+    "autoprefixer": "^10.4.16",
     "cross-env": "^7.0.3",
+    "cssnano": "^6.0.2",
+    "postcss": "^8.5.3",
+    "postcss-cli": "^11.0.0",
     "tailwindcss": "^4.0.15"
+  },
+  "dependencies": {
+    "@tailwindcss/postcss": "^4.0.15"
   }
 }
