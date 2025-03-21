@@ -1,10 +1,11 @@
 package com.buseni.discipline.sanction.controller;
 
-import java.security.Principal;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,6 +19,7 @@ import com.buseni.discipline.sanction.dto.ChildSanctionViewDto;
 import com.buseni.discipline.sanction.dto.WeeklySanctionDto;
 import com.buseni.discipline.sanction.service.RegleDisciplineService;
 import com.buseni.discipline.sanction.service.WeeklySanctionService;
+import com.buseni.discipline.users.domain.User;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -42,9 +44,11 @@ public class SanctionController {
      * Get the sanctions list page
      */
     @GetMapping
-    public String getSanctionsPage(Model model, Principal principal) {
+    public String getSanctionsPage(Model model, @AuthenticationPrincipal UserDetails userDetails) {
+        User user = (User) userDetails;
+        
         // Get the children for the current user
-        List<ChildDto> children = childService.getChildrenByParentId(principal.getName());
+        List<ChildDto> children = childService.getChildrenByParentId(user.getId());
         
         // Get the weekly sanctions for all children for the current week
         List<WeeklySanctionDto> weeklySanctions = children.stream()
@@ -90,13 +94,14 @@ public class SanctionController {
     public String applySanctionByRule(
             @PathVariable String childId,
             @PathVariable String ruleCode,
-            Principal principal,
+            @AuthenticationPrincipal UserDetails userDetails,
             Model model) {
         
+        User user = (User) userDetails;
         log.debug("Applying sanction rule {} to child {}", ruleCode, childId);
         
         // Apply the sanction
-        WeeklySanctionDto weeklySanction = weeklySanctionService.applySanction(childId, ruleCode, principal.getName());
+        WeeklySanctionDto weeklySanction = weeklySanctionService.applySanction(childId, ruleCode, user.getId());
         
         // Get the child
         ChildDto child = childService.getChildById(childId);
@@ -121,13 +126,14 @@ public class SanctionController {
     public String applySanction(
             @PathVariable String childId,
             @PathVariable Integer points,
-            Principal principal,
+            @AuthenticationPrincipal UserDetails userDetails,
             Model model) {
         
+        User user = (User) userDetails;
         log.debug("Applying points {} to child {}", points, childId);
         
         // Apply the points - treat points value as a rule code
-        WeeklySanctionDto weeklySanction = weeklySanctionService.applySanction(childId, String.valueOf(points), principal.getName());
+        WeeklySanctionDto weeklySanction = weeklySanctionService.applySanction(childId, String.valueOf(points), user.getId());
         
         // Get the child
         ChildDto child = childService.getChildById(childId);
