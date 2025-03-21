@@ -8,6 +8,97 @@
     <title th:text="#{sanctions.title}">Sanctions</title>
 </head>
 <body>
-    <h1> SANCTIONS LIST</h1>
+    <div layout:fragment="content">
+        <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+            <div class="px-4 py-6 sm:px-0">
+                <!-- Page Header -->
+                <div class="flex justify-between items-center mb-6">
+                    <h1 class="text-2xl font-bold text-gray-900 dark:text-white" th:text="#{sanctions.heading}">Sanctions Management</h1>
+                    <div class="flex space-x-3">
+                        <a th:href="@{/sanctions/parent-view}" class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            <svg class="-ml-1 mr-2 h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M2 10a8 8 0 1116 0 8 8 0 01-16 0zm8-6a6 6 0 100 12 6 6 0 000-12z" />
+                                <path d="M10 8a2 2 0 11-4 0 2 2 0 014 0z" />
+                            </svg>
+                            <span th:text="#{sanctions.parent.view}">Parent Overview</span>
+                        </a>
+                        <a th:href="@{/sanctions/history}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            <span th:text="#{sanctions.history.view}">View History</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- No Children Alert -->
+                <div th:if="${#lists.isEmpty(children)}" class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm text-yellow-700" th:text="#{sanctions.no.children}">
+                                No children found. Please add children to your account first.
+                            </p>
+                            <div class="mt-2">
+                                <a th:href="@{/children}" class="text-sm font-medium text-yellow-700 hover:text-yellow-600" th:text="#{sanctions.add.children}">
+                                    Add children →
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Children Sanctions -->
+                <div th:if="${not #lists.isEmpty(children)}" class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                    <div th:each="child : ${children}" class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
+                        <div class="px-4 py-5 sm:p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <h2 class="text-xl font-bold text-gray-900 dark:text-white" th:text="${child.firstName}">Child Name</h2>
+                                <span class="text-sm text-gray-500 dark:text-gray-400" th:text="${child.age + ' ' + #{sanctions.years}}">Age</span>
+                            </div>
+                            
+                            <!-- Points display - will be replaced by fragments -->
+                            <div th:replace="~{sanctions/fragments/child-points :: points(weeklySanction=${weeklySanctions.stream().filter(ws -> ws.childId == child.id).findFirst().orElse(null)}, child=${child}, rules=${rules})}"></div>
+                            
+                            <!-- Quick sanction actions -->
+                            <div class="mt-4 border-t pt-4">
+                                <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2" th:text="#{sanctions.quick.actions}">Quick Actions</h3>
+                                <div class="flex flex-wrap gap-2">
+                                    <button th:each="rule : ${rules}"
+                                            th:text="${rule.code}"
+                                            th:title="${rule.description}"
+                                            th:attr="hx-put=@{/sanctions/{childId}/rule/{ruleCode}(childId=${child.id}, ruleCode=${rule.code})},
+                                                   hx-target='#points-' + ${child.id},
+                                                   hx-swap='outerHTML'"
+                                            class="px-2 py-1 text-xs font-medium rounded-md text-white bg-red-600 hover:bg-red-700 transition-colors duration-150">
+                                        Rule Code
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Discipline Rules Reference -->
+                <div class="mt-8 bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-md">
+                    <div class="px-4 py-5 sm:px-6">
+                        <h3 class="text-lg font-medium text-gray-900 dark:text-white" th:text="#{sanctions.rules.reference}">Discipline Rules Reference</h3>
+                        <p class="mt-1 max-w-2xl text-sm text-gray-500 dark:text-gray-400" th:text="#{sanctions.rules.explanation}">
+                            These are the predefined discipline rules and their corresponding point deductions.
+                        </p>
+                    </div>
+                    <div class="border-t border-gray-200 dark:border-gray-700 px-4 py-5 sm:p-0">
+                        <dl class="sm:divide-y sm:divide-gray-200 dark:sm:divide-gray-700">
+                            <div th:each="rule : ${rules}" class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                                <dt class="text-sm font-medium text-gray-500 dark:text-gray-400" th:text="${rule.code}">Rule Code</dt>
+                                <dd class="mt-1 text-sm text-gray-900 dark:text-white sm:mt-0 sm:col-span-2" th:text="${rule.description}">Rule Description</dd>
+                            </div>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html> 

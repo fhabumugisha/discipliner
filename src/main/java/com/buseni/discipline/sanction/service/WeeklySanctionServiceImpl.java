@@ -1,6 +1,7 @@
 package com.buseni.discipline.sanction.service;
 
 import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.temporal.WeekFields;
@@ -19,7 +20,6 @@ import com.buseni.discipline.sanction.domain.WeeklySanction;
 import com.buseni.discipline.sanction.dto.SanctionHistoryDto;
 import com.buseni.discipline.sanction.dto.WeeklySanctionDto;
 import com.buseni.discipline.sanction.repository.WeeklySanctionRepository;
-import com.buseni.discipline.users.domain.User;
 import com.buseni.discipline.users.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -164,19 +164,19 @@ public class WeeklySanctionServiceImpl implements WeeklySanctionService {
             .orElseThrow(() -> new IllegalArgumentException("Child not found: " + sanction.getChildId()));
             
         List<SanctionHistoryDto> sanctionDtos = sanction.getSanctions().stream()
-            .map(s -> {
-                String appliedByName = userRepository.findById(s.appliedBy())
+                .map(s -> {
+                    String appliedByName = userRepository.findById(s.appliedBy())
                     .map(user -> user.getFirstName() + " " + user.getLastName())
                     .orElse("Unknown");
                     
-                return new SanctionHistoryDto(
-                    s.ruleCode(),
-                    s.ruleDescription(),
-                    s.points(),
-                    s.appliedAt(),
-                    s.appliedBy(),
-                    appliedByName
-                );
+                return SanctionHistoryDto.builder()
+                    .ruleCode(s.ruleCode())
+                    .ruleDescription(s.ruleDescription())
+                    .pointsChange(s.points())
+                    .appliedAt(s.appliedAt())
+                    .appliedBy(s.appliedBy())
+                    .appliedByName(appliedByName)
+                    .build();       
             })
             .toList();
             
@@ -201,4 +201,71 @@ public class WeeklySanctionServiceImpl implements WeeklySanctionService {
             nextReset
         );
     }
-} 
+
+    @Override
+    public List<WeeklySanctionDto> getAvailableWeeks(String parentId) {
+        return weeklySanctionRepository.findByParentId(parentId)
+            .stream()
+            .map(this::toDto)
+            .toList();
+    }
+
+    @Override
+    public WeeklySanctionDto getWeeklySanctionById(String weeklySanctionId) {
+        return weeklySanctionRepository.findById(weeklySanctionId)
+            .map(this::toDto)
+            .orElseThrow(() -> new IllegalArgumentException("Week not found: " + weeklySanctionId));
+    }
+
+    @Override
+    public WeeklySanctionDto getCurrentWeek() {
+        LocalDateTime now = LocalDateTime.now(PARIS_ZONE);
+        return weeklySanctionRepository.findByWeekStartDateLessThanEqualAndWeekEndDateGreaterThanEqual(now, now)
+            .map(this::toDto)
+            .orElseThrow(() -> new IllegalArgumentException("Current week not found"));
+    }   
+
+    @Override
+            public List<WeeklySanctionDto> getChildrenSummariesForWeek(Integer weekNumber, String parentId) {
+        return weeklySanctionRepository.findByParentIdAndWeekNumber(parentId, weekNumber)
+            .stream()
+            .map(this::toDto)
+            .toList();
+    }
+
+    @Override
+    public List<WeeklySanctionDto> getChildrenSummariesForCurrentWeek(String parentId) {
+        LocalDateTime now = LocalDateTime.now(PARIS_ZONE);
+        return weeklySanctionRepository.findByParentIdAndWeekStartDateLessThanEqualAndWeekEndDateGreaterThanEqual(parentId, now, now)
+            .stream()
+            .map(this::toDto)
+            .toList();
+    }
+
+    @Override
+        public List<WeeklySanctionDto> getRecentActivity(String parentId, int limit) {
+        return weeklySanctionRepository.findByParentIdOrderByWeekStartDateDesc(parentId)
+            .stream()
+            .map(this::toDto)
+            .limit(limit)   
+            .toList();
+    }     
+    
+    @Override
+    public List<WeeklySanctionDto> getSanctionHistoryByChildAndDateRange(String childId, LocalDate dateFrom, LocalDate dateTo, String parentId) {
+        return weeklySanctionRepository.findByChildIdAndParentIdAndWeekStartDateLessThanEqualAndWeekEndDateGreaterThanEqual(childId, parentId, dateFrom, dateTo)
+            .stream()
+            .map(this::toDto)
+            .toList();
+        }       
+
+    @Override
+    public List<WeeklySanctionDto> getSanctionHistoryByDateRange(LocalDate dateFrom, LocalDate dateTo, String parentId) {
+        return weeklySanctionRepository.findByParentIdAndWeekStartDateLessThanEqualAndWeekEndDateGreaterThanEqual(parentId, dateFrom, dateTo)
+            .stream()
+            .map(this::toDto)
+            .toList();
+    }
+
+       
+}   

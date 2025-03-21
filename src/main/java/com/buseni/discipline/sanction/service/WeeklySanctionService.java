@@ -1,7 +1,9 @@
 package com.buseni.discipline.sanction.service;
 
+import java.time.LocalDate;
 import java.util.List;
 
+import com.buseni.discipline.sanction.dto.SanctionHistoryDto;
 import com.buseni.discipline.sanction.dto.WeeklySanctionDto;
 
 /**
@@ -55,4 +57,74 @@ public interface WeeklySanctionService {
      * Only accessible by admin users.
      */
     void manualWeeklyReset();
+
+    /**
+     * Get available weeks for a parent.
+     * 
+     * @param parentId the ID of the parent
+     * @return list of available weeks
+     */
+    List<WeeklySanctionDto> getAvailableWeeks(String parentId);
+
+    /**
+     * Get a week by its ID.
+     * 
+     * @param weekId the ID of the week
+     * @return the week DTO
+     */
+    WeeklySanctionDto getWeeklySanctionById(String weeklySanctionId);
+
+    /**
+     * Get the current week.
+     * 
+     * @return the current week DTO
+     */
+    WeeklySanctionDto getCurrentWeek();
+
+    /**
+     * Get children summaries for a week.
+     * 
+     * @param weekId the ID of the week 
+     * @param parentId the ID of the parent
+     * @return list of children summaries
+     */
+    List<WeeklySanctionDto> getChildrenSummariesForWeek(Integer weekId, String parentId);
+
+    /**
+     * Get the children summaries for the current week.
+     * 
+     * @param parentId the ID of the parent
+     * @return list of children summaries
+     */
+    List<WeeklySanctionDto> getChildrenSummariesForCurrentWeek(String parentId);
+
+    /**
+     * Get recent activity for a parent.
+     * 
+     * @param parentId the ID of the parent
+     * @param limit the limit of recent activity
+     * @return list of recent activity
+     */
+    List<WeeklySanctionDto> getRecentActivity(String parentId, int limit);
+
+    /**
+     * Get sanction history by child and date range.
+     * 
+     * @param childId the ID of the child
+     * @param dateFrom the start date
+     * @param dateTo the end date
+     * @param parentId the ID of the parent
+     * @return list of sanction history
+     */
+    List<WeeklySanctionDto> getSanctionHistoryByChildAndDateRange(String childId, LocalDate dateFrom, LocalDate dateTo, String parentId);
+
+    /**
+     * Get sanction history by date range.
+     * 
+     * @param dateFrom the start date
+     * @param dateTo the end date
+     * @param parentId the ID of the parent
+     * @return list of sanction history
+     */
+    List<WeeklySanctionDto> getSanctionHistoryByDateRange(LocalDate dateFrom, LocalDate dateTo, String parentId);
 } 

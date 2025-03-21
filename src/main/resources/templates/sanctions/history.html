@@ -1,87 +1,111 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
       layout:decorate="~{layouts/base}"
       lang="en">
 <head>
     <title th:text="#{sanctions.history.title}">Sanctions History</title>
 </head>
 <body>
-    <div layout:fragment="content" class="container mx-auto px-4 py-8">
-        <div class="max-w-4xl mx-auto">
-            <!-- Header -->
-            <div class="mb-8">
-                <h1 class="text-3xl font-bold text-gray-900 dark:text-white" th:text="#{sanctions.history.title}">Sanctions History</h1>
-                <p class="mt-2 text-sm text-gray-600 dark:text-gray-400" th:text="#{sanctions.history.description}">
-                    View the complete sanctions history for this child.
-                </p>
-            </div>
-
-            <!-- History Timeline -->
-            <div class="space-y-6">
-                <div th:each="sanction : ${sanctions}" 
-                     class="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
-                    <!-- Week Header -->
-                    <div class="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-gray-700">
-                        <div class="flex justify-between items-center">
-                            <div>
-                                <h3 class="text-lg font-medium text-gray-900 dark:text-white">
-                                    <span th:text="#{sanctions.week}">Week</span>
-                                    <span th:text="${sanction.weekNumber}">1</span>
-                                    <span class="text-sm text-gray-500 dark:text-gray-400 ml-2" 
-                                          th:text="${#temporals.format(sanction.weekStartDate, 'dd/MM')} + ' - ' + ${#temporals.format(sanction.weekEndDate, 'dd/MM')}">
-                                        01/01 - 07/01
-                                    </span>
-                                </h3>
-                            </div>
-                            <div class="text-right">
-                                <div class="text-xl font-bold tabular-nums"
-                                     th:classappend="${sanction.finalPoints < 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}">
-                                    <span th:text="${sanction.finalPoints}">20</span>
-                                </div>
-                                <div class="text-sm text-gray-500 dark:text-gray-400">
-                                    <span th:text="#{sanctions.initial.points}">Initial:</span>
-                                    <span th:text="${sanction.initialPoints}">20</span>
-                                </div>
-                            </div>
-                        </div>
+    <div layout:fragment="content">
+        <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+            <div class="px-4 py-6 sm:px-0">
+                <!-- Page Header -->
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-900 dark:text-white" th:text="#{sanctions.history.heading}">Sanctions History</h1>
+                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400" th:text="#{sanctions.history.subheading}">
+                            Track all sanctions applied over time
+                        </p>
                     </div>
-
-                    <!-- Sanctions List -->
-                    <div class="px-4 py-5 sm:p-6">
-                        <div class="space-y-4">
-                            <div th:each="entry : ${sanction.sanctions}" 
-                                 class="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                                <div class="flex-1">
-                                    <p class="text-sm font-medium text-gray-900 dark:text-white" th:text="${entry.ruleDescription}">Rule description</p>
-                                    <p class="text-xs text-gray-500 dark:text-gray-400">
-                                        <span th:text="${entry.appliedByName}">Parent</span> -
-                                        <span th:text="${#temporals.format(entry.appliedAt, 'dd/MM HH:mm')}">01/01 14:30</span>
-                                    </p>
-                                </div>
-                                <div class="text-sm font-semibold tabular-nums"
-                                     th:classappend="${entry.points < 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}">
-                                    <span th:text="${entry.points}">-5</span>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- No Sanctions Message -->
-                        <div th:if="${#lists.isEmpty(sanction.sanctions)}" 
-                             class="text-center py-4 text-gray-500 dark:text-gray-400">
-                            <p th:text="#{sanctions.no.history}">No sanctions were applied this week</p>
-                        </div>
+                    <div>
+                        <a th:href="@{/sanctions}" class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            <svg class="-ml-1 mr-2 h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+                            </svg>
+                            <span th:text="#{sanctions.back.to.dashboard}">Back to Sanctions</span>
+                        </a>
                     </div>
                 </div>
-            </div>
 
-            <!-- No History Message -->
-            <div th:if="${#lists.isEmpty(sanctions)}" 
-                 class="text-center py-8">
-                <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-                    <p class="text-gray-500 dark:text-gray-400" th:text="#{sanctions.no.history.weeks}">
-                        No sanctions history available
-                    </p>
+                <!-- Filters -->
+                <div class="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg mb-6">
+                    <div class="px-4 py-5 sm:p-6">
+                        <form th:action="@{/sanctions/history}" method="get" class="grid grid-cols-1 gap-4 sm:grid-cols-4">
+                            <!-- Child Filter -->
+                            <div>
+                                <label for="child" class="block text-sm font-medium text-gray-700 dark:text-gray-300" th:text="#{sanctions.filter.child}">Child</label>
+                                <select id="child" name="childId" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                                    <option value="" th:text="#{sanctions.filter.all.children}">All Children</option>
+                                    <option th:each="child : ${children}" th:value="${child.id}" th:text="${child.firstName}" th:selected="${param.childId != null && param.childId[0] == child.id}">Child Name</option>
+                                </select>
+                            </div>
+
+                            <!-- Date Range -->
+                            <div>
+                                <label for="dateFrom" class="block text-sm font-medium text-gray-700 dark:text-gray-300" th:text="#{sanctions.filter.date.from}">From Date</label>
+                                <input type="date" id="dateFrom" name="dateFrom" th:value="${param.dateFrom}" 
+                                       class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                            </div>
+
+                            <div>
+                                <label for="dateTo" class="block text-sm font-medium text-gray-700 dark:text-gray-300" th:text="#{sanctions.filter.date.to}">To Date</label>
+                                <input type="date" id="dateTo" name="dateTo" th:value="${param.dateTo}"
+                                       class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                            </div>
+
+                            <div class="flex items-end">
+                                <button type="submit" class="w-full inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                    <span th:text="#{sanctions.filter.apply}">Apply Filters</span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- History Table -->
+                <div class="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg">
+                    <div class="px-4 py-5 sm:px-6 flex justify-between items-center">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white" th:text="#{sanctions.history.record}">Sanctions Record</h3>
+                        <span class="text-sm text-gray-500 dark:text-gray-400" th:text="${#lists.isEmpty(sanctionHistory) ? '0' : sanctionHistory.size()} + ' ' + #{sanctions.history.records}">0 records</span>
+                    </div>
+                    
+                    <!-- No records message -->
+                    <div th:if="${#lists.isEmpty(sanctionHistory)}" class="px-4 py-5 sm:p-6 text-center">
+                        <p class="text-gray-500 dark:text-gray-400" th:text="#{sanctions.history.no.records}">No sanction records found matching your criteria.</p>
+                    </div>
+                    
+                    <!-- Records table -->
+                    <div th:if="${!#lists.isEmpty(sanctionHistory)}" class="border-t border-gray-200 dark:border-gray-700">
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                                <thead class="bg-gray-50 dark:bg-gray-700">
+                                    <tr>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider" th:text="#{sanctions.history.date}">Date</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider" th:text="#{sanctions.history.child}">Child</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider" th:text="#{sanctions.history.rule}">Rule/Points</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider" th:text="#{sanctions.history.points.before}">Points Before</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider" th:text="#{sanctions.history.points.after}">Points After</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider" th:text="#{sanctions.history.applied.by}">Applied By</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                                    <tr th:each="record : ${sanctionHistory}">
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400" th:text="${#temporals.format(record.appliedAt, 'dd MMM yyyy, HH:mm')}">01 Jan 2023, 12:34</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white" th:text="${record.childName}">Child Name</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                                            <span th:if="${record.ruleCode != null}" class="px-2 py-1 text-xs rounded-full bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200" th:text="${record.ruleCode}">R01</span>
+                                            <span th:if="${record.ruleCode == null}" th:class="${record.pointsChange &gt; 0 ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200' : 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200'}" class="px-2 py-1 text-xs rounded-full" th:text="${record.pointsChange &gt; 0 ? '+' + record.pointsChange : record.pointsChange}">-5</span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400" th:text="${record.pointsBefore}">85</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400" th:text="${record.pointsAfter}">80</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400" th:text="${record.appliedByName}">Parent Name</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
