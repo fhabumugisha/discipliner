@@ -5,7 +5,6 @@ import java.util.List;
 
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,7 +12,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.buseni.discipline.children.service.ChildService;
-import com.buseni.discipline.sanction.dto.SanctionHistoryDto;
 import com.buseni.discipline.sanction.dto.WeeklySanctionDto;
 import com.buseni.discipline.sanction.service.WeeklySanctionService;
 import com.buseni.discipline.users.domain.User;
@@ -36,9 +34,9 @@ public class SanctionHistoryController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo,
             Model model,
-            @AuthenticationPrincipal UserDetails userDetails) {
+            @AuthenticationPrincipal User user) {
         
-        User user = (User) userDetails;
+        log.debug("Getting sanction history for child: {}, dateFrom: {}, dateTo: {}", childId, dateFrom, dateTo);
         
         // Get children for the current user
         var children = childService.getChildrenByParentId(user.getId());
@@ -65,8 +63,10 @@ public class SanctionHistoryController {
         }
         
         model.addAttribute("sanctionHistory", sanctionHistory);
+        model.addAttribute("selectedChildId", childId);
+        model.addAttribute("dateFrom", dateFrom);
+        model.addAttribute("dateTo", dateTo);
         
         return "sanctions/history";
     }
-    
 } 
