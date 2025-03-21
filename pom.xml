@@ -30,6 +30,14 @@
 		<java.version>21</java.version>
 		<maven.compiler.source>21</maven.compiler.source>
 		<maven.compiler.target>21</maven.compiler.target>
+		<!-- WebJars versions -->
+		<webjars-locator-core.version>0.59</webjars-locator-core.version>
+		<alpinejs.version>3.13.5</alpinejs.version>
+		<htmx.version>1.9.10</htmx.version>
+		<!-- Frontend build properties (used only in 'frontend' profile) -->
+		<frontend-maven-plugin.version>1.15.0</frontend-maven-plugin.version>
+		<frontend-maven-plugin.nodeVersion>v20.11.1</frontend-maven-plugin.nodeVersion>
+		<frontend-maven-plugin.npmVersion>10.2.4</frontend-maven-plugin.npmVersion>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -57,6 +65,23 @@
 		<dependency>
 			<groupId>org.thymeleaf.extras</groupId>
 			<artifactId>thymeleaf-extras-springsecurity6</artifactId>
+		</dependency>
+
+		<!-- WebJars dependencies -->
+		<dependency>
+			<groupId>org.webjars</groupId>
+			<artifactId>webjars-locator-core</artifactId>
+			<version>${webjars-locator-core.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.webjars.npm</groupId>
+			<artifactId>alpinejs</artifactId>
+			<version>${alpinejs.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.webjars.npm</groupId>
+			<artifactId>htmx.org</artifactId>
+			<version>${htmx.version}</version>
 		</dependency>
 
 		<dependency>
@@ -88,9 +113,16 @@
 			<groupId>nz.net.ultraq.thymeleaf</groupId>
 			<artifactId>thymeleaf-layout-dialect</artifactId>
 		</dependency>
+
+
 	</dependencies>
 
 	<build>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>		
+			</resource>
+		</resources>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -120,9 +152,71 @@
 				<groupId>com.google.cloud.tools</groupId>
 				<artifactId>jib-maven-plugin</artifactId>
 				<version>3.4.4</version>
-				
 			</plugin>
+		
 		</plugins>
+		 <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>com.github.eirslett</groupId>
+                    <artifactId>frontend-maven-plugin</artifactId>
+                    <version>${frontend-maven-plugin.version}</version>
+                    <executions>
+                        <execution>
+                            <id>install-frontend-tooling</id>
+                            <goals>
+                                <goal>install-node-and-npm</goal>
+                            </goals>
+                            <configuration>
+                                <nodeVersion>${frontend-maven-plugin.nodeVersion}</nodeVersion>
+                                <npmVersion>${frontend-maven-plugin.npmVersion}</npmVersion>
+                            </configuration>
+                        </execution>
+                        <execution>
+                            <id>run-npm-install</id>
+                            <goals>
+                                <goal>npm</goal>
+                            </goals>
+                        </execution>
+                        <execution>
+                            <id>run-npm-build</id>
+                            <goals>
+                                <goal>npm</goal>
+                            </goals>
+                            <configuration>
+                                <arguments>run build</arguments>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+            </plugins>
+        </pluginManagement>
 	</build>
+
+	<profiles>
+		
+		<profile>
+			<id>release</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>com.github.eirslett</groupId>
+						<artifactId>frontend-maven-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>run-npm-build</id>
+								<goals>
+									<goal>npm</goal>
+								</goals>
+								<configuration>
+									<arguments>run build-prod</arguments>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
 
 </project>

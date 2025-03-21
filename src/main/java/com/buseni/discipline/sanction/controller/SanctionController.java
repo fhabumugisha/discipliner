@@ -16,7 +16,6 @@ import com.buseni.discipline.children.dto.ChildDto;
 import com.buseni.discipline.children.service.ChildService;
 import com.buseni.discipline.sanction.dto.WeeklySanctionDto;
 import com.buseni.discipline.sanction.service.RegleDisciplineService;
-import com.buseni.discipline.sanction.service.SanctionService;
 import com.buseni.discipline.sanction.service.WeeklySanctionService;
 import com.buseni.discipline.users.domain.User;
 
@@ -31,7 +30,6 @@ import lombok.extern.slf4j.Slf4j;
 public class SanctionController {
 
     private final ChildService childService;
-    private final SanctionService sanctionService;
     private final RegleDisciplineService regleDisciplineService;
     private final WeeklySanctionService weeklySanctionService;
 

@@ -17,6 +17,7 @@ alwaysApply: true
 - Use **Tailwind CSS 4** for styling and avoid inline styles unless necessary.
 - Use **Alpine.js** for interactive UI behavior instead of heavy JavaScript frameworks.
 - Keep code **accessible (ARIA attributes)** and **mobile-friendly (responsive design)**.
+- Use  webjars and frontend-maven-plugin for web dependenciens ( alpine, htmx, tailwind) management
 
 ## HTML Structure
 - Use **Thymeleaf syntax** (`th:text`, `th:if`, `th:each`, etc.) for dynamic content.

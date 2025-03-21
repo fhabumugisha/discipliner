@@ -1,7 +1,6 @@
 package com.buseni.discipline.children.service;
 
 import java.util.List;
-import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,7 +19,7 @@ public class ChildServiceImpl implements ChildService {
 
     @Override
     public List<ChildDto> getChildrenByParentId(String parentId) {
-        return childRepository.findByParentId(parentId)
+        return childRepository.findByParentIdAndDeletedFalse(parentId)
                 .stream()
                 .map(this::toDto)
                 .toList();

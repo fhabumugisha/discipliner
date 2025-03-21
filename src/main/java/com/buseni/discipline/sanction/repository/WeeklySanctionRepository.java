@@ -5,11 +5,10 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.mongodb.repository.MongoRepository;
-import org.springframework.stereotype.Repository;
 
 import com.buseni.discipline.sanction.domain.WeeklySanction;
 
-@Repository
+
 public interface WeeklySanctionRepository extends MongoRepository<WeeklySanction, String> {
     
     List<WeeklySanction> findByChildIdOrderByWeekStartDateDesc(String childId);
