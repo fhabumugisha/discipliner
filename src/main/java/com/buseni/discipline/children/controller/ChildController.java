@@ -35,6 +35,7 @@ public class ChildController {
     private static final String CHILDREN_LIST_FRAGMENT_CHILD_FORM = "children/list :: #childForm";
     private static final String CHILDREN_LIST_FRAGMENT_CHILDREN_CONTAINER = "children/list :: #childrenContainer";
     private static final String CHILDREN_LIST_FRAGMENT_CHILDREN_LIST = "children/list :: #childrenList";    
+    private static final String CHILDREN_LIST_PAGE = "children/list";
 
     @GetMapping
     public String getChildrenPage(Model model, Authentication authentication) {
@@ -46,7 +47,7 @@ public class ChildController {
         model.addAttribute(CHILDREN_MODEL_ATTRIBUTE, children);
         model.addAttribute(CHILD_DTO_MODEL_ATTRIBUTE, new ChildDto("", "", Integer.valueOf(0), Integer.valueOf(0)));
         model.addAttribute(PARENT_ID_MODEL_ATTRIBUTE, parentId);
-        return CHILDREN_LIST_FRAGMENT_CHILDREN_LIST;
+        return CHILDREN_LIST_PAGE;
     }
 
     @GetMapping("/{parentId}/{childId}/edit")
