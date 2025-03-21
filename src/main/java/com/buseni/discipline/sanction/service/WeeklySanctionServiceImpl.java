@@ -7,6 +7,7 @@ import java.time.ZoneId;
 import java.time.temporal.WeekFields;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -220,9 +221,20 @@ public class WeeklySanctionServiceImpl implements WeeklySanctionService {
     @Override
     public WeeklySanctionDto getCurrentWeek() {
         LocalDateTime now = LocalDateTime.now(PARIS_ZONE);
-        return weeklySanctionRepository.findByWeekStartDateLessThanEqualAndWeekEndDateGreaterThanEqual(now, now)
+        
+        // First try to find the current week
+        Optional<WeeklySanction> currentWeek = weeklySanctionRepository.findByWeekStartDateLessThanEqualAndWeekEndDateGreaterThanEqual(now, now);
+        
+        if (currentWeek.isPresent()) {
+            return toDto(currentWeek.get());
+        }
+        
+        // If no current week exists, use the most recent week instead
+        return weeklySanctionRepository.findAll().stream()
+            .sorted((w1, w2) -> w2.getWeekStartDate().compareTo(w1.getWeekStartDate()))
+            .findFirst()
             .map(this::toDto)
-            .orElseThrow(() -> new IllegalArgumentException("Current week not found"));
+            .orElseThrow(() -> new IllegalArgumentException("No weeks found in the system"));
     }   
 
     @Override
