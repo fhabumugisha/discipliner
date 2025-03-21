@@ -96,23 +96,42 @@ public class SanctionController {
         
         log.debug("Applying sanction rule {} to child {}", ruleCode, childId);
         
-        // Apply the sanction
-        WeeklySanctionDto weeklySanction = weeklySanctionService.applySanction(childId, ruleCode, user.getId());
-        
-        // Get the child
-        ChildDto child = childService.getChildById(childId);
-        
-        // Get the rules
-        var rules = regleDisciplineService.getAllRules();
-        
-        // Create a ChildSanctionViewDto
-        ChildSanctionViewDto childSanction = new ChildSanctionViewDto(child, weeklySanction);
-        
-        // Add attributes to the model
-        model.addAttribute("childSanction", childSanction);
-        model.addAttribute("rules", rules);
-        
-        return "sanctions/fragments/child-points :: points";
+        try {
+            // Apply the sanction
+            WeeklySanctionDto weeklySanction = weeklySanctionService.applySanction(childId, ruleCode, user.getId());
+            
+            // Get the child
+            ChildDto child = childService.getChildById(childId);
+            
+            // Get the rules
+            var rules = regleDisciplineService.getAllRules();
+            
+            // Create a ChildSanctionViewDto
+            ChildSanctionViewDto childSanction = new ChildSanctionViewDto(child, weeklySanction);
+            
+            // Add attributes to the model
+            model.addAttribute("childSanction", childSanction);
+            model.addAttribute("rules", rules);
+            
+            return "sanctions/fragments/child-points :: points";
+        } catch (Exception e) {
+            log.error("Error applying sanction rule {} to child {}: {}", ruleCode, childId, e.getMessage(), e);
+            
+            // Get the child and current sanctions to show current state
+            ChildDto child = childService.getChildById(childId);
+            WeeklySanctionDto currentSanction = weeklySanctionService.getCurrentWeekSanction(childId);
+            var rules = regleDisciplineService.getAllRules();
+            
+            // Create view DTO with current data
+            ChildSanctionViewDto childSanction = new ChildSanctionViewDto(child, currentSanction);
+            
+            // Add attributes to the model
+            model.addAttribute("childSanction", childSanction);
+            model.addAttribute("rules", rules);
+            model.addAttribute("error", "Could not apply sanction. Please try again.");
+            
+            return "sanctions/fragments/child-points :: points";
+        }
     }
     
     /**
@@ -127,22 +146,41 @@ public class SanctionController {
         
         log.debug("Applying points {} to child {}", points, childId);
         
-        // Apply the points - treat points value as a rule code
-        WeeklySanctionDto weeklySanction = weeklySanctionService.applySanction(childId, String.valueOf(points), user.getId());
-        
-        // Get the child
-        ChildDto child = childService.getChildById(childId);
-        
-        // Get the rules
-        var rules = regleDisciplineService.getAllRules();
-        
-        // Create a ChildSanctionViewDto
-        ChildSanctionViewDto childSanction = new ChildSanctionViewDto(child, weeklySanction);
-        
-        // Add attributes to the model
-        model.addAttribute("childSanction", childSanction);
-        model.addAttribute("rules", rules);
-        
-        return "sanctions/fragments/child-points :: points";
+        try {
+            // Apply the points - treat points value as a rule code
+            WeeklySanctionDto weeklySanction = weeklySanctionService.applySanction(childId, String.valueOf(points), user.getId());
+            
+            // Get the child
+            ChildDto child = childService.getChildById(childId);
+            
+            // Get the rules
+            var rules = regleDisciplineService.getAllRules();
+            
+            // Create a ChildSanctionViewDto
+            ChildSanctionViewDto childSanction = new ChildSanctionViewDto(child, weeklySanction);
+            
+            // Add attributes to the model
+            model.addAttribute("childSanction", childSanction);
+            model.addAttribute("rules", rules);
+            
+            return "sanctions/fragments/child-points :: points";
+        } catch (Exception e) {
+            log.error("Error applying points {} to child {}: {}", points, childId, e.getMessage(), e);
+            
+            // Get the child and current sanctions to show current state
+            ChildDto child = childService.getChildById(childId);
+            WeeklySanctionDto currentSanction = weeklySanctionService.getCurrentWeekSanction(childId);
+            var rules = regleDisciplineService.getAllRules();
+            
+            // Create view DTO with current data
+            ChildSanctionViewDto childSanction = new ChildSanctionViewDto(child, currentSanction);
+            
+            // Add attributes to the model
+            model.addAttribute("childSanction", childSanction);
+            model.addAttribute("rules", rules);
+            model.addAttribute("error", "Could not apply points adjustment. Please try again.");
+            
+            return "sanctions/fragments/child-points :: points";
+        }
     }
 } 

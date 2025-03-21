@@ -3,6 +3,11 @@
 <body>
     <!-- Points Fragment -->
     <div th:fragment="points(childSanction, rules)" th:id="'points-' + ${childSanction.childId}">
+        <!-- Error message -->
+        <div th:if="${error != null}" class="mb-3 p-2 bg-red-100 border border-red-400 text-red-700 dark:bg-red-900 dark:border-red-700 dark:text-red-300 rounded">
+            <p class="text-sm" th:text="${error}">Error message</p>
+        </div>
+        
         <!-- Points summary -->
         <div class="flex items-center justify-between mb-2">
             <h3 class="text-base font-medium text-gray-700 dark:text-gray-300" th:text="#{sanctions.current.points}">Current Points</h3>
