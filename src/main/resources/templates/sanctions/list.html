@@ -147,7 +147,7 @@
             </div>
             
             <!-- Discipline Rules Reference -->
-            <div class="mt-8 bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg border border-gray-200 dark:border-gray-700">
+            <div class="mt-8 bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg border border-gray-200 dark:border-gray-700" x-data="{ showRules: false }">
                 <div class="px-4 py-5 sm:px-6 flex justify-between items-center">
                     <div>
                         <h3 class="text-lg font-medium text-gray-900 dark:text-white" th:text="#{sanctions.rules.reference}">Discipline Rules Reference</h3>
@@ -155,14 +155,14 @@
                             These are the predefined discipline rules and their corresponding point deductions.
                         </p>
                     </div>
-                    <button id="toggleRulesBtn" class="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-600">
-                        <span>Show Details</span>
-                        <svg id="arrowIcon" class="ml-1.5 h-4 w-4 transform transition-transform" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <button @click="showRules = !showRules" class="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-600">
+                        <span x-text="showRules ? 'Hide Details' : 'Show Details'">Show Details</span>
+                        <svg class="ml-1.5 h-4 w-4 transform transition-transform" :class="{ 'rotate-180': showRules }" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                         </svg>
                     </button>
                 </div>
-                <div id="rulesContent" class="hidden border-t border-gray-200 dark:border-gray-700 px-4 py-5 sm:p-0">
+                <div x-show="showRules" class="border-t border-gray-200 dark:border-gray-700 px-4 py-5 sm:p-0">
                     <dl class="sm:divide-y sm:divide-gray-200 dark:sm:divide-gray-700">
                         <div th:each="rule : ${rules}" class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                             <dt class="flex items-center text-sm font-medium text-gray-500 dark:text-gray-400">
@@ -176,21 +176,5 @@
             </div>
         </div>
     </div>
-
-    <!-- JavaScript for Toggle Rules -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const toggleBtn = document.getElementById('toggleRulesBtn');
-            const rulesContent = document.getElementById('rulesContent');
-            const arrowIcon = document.getElementById('arrowIcon');
-            const btnText = toggleBtn.querySelector('span');
-            
-            toggleBtn.addEventListener('click', function() {
-                rulesContent.classList.toggle('hidden');
-                arrowIcon.classList.toggle('rotate-180');
-                btnText.textContent = rulesContent.classList.contains('hidden') ? 'Show Details' : 'Hide Details';
-            });
-        });
-    </script>
 </body>
 </html> 
