@@ -93,14 +93,13 @@
                         <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600 dark:border-red-400"></div>
                     </div>
                 </div>
-                    <!--
+                
                 <ul role="list" class="divide-y divide-gray-200 dark:divide-gray-700">
                     <li th:each="child, iterStat : ${children}" 
                         th:with="weekSanction=${weeklySanctions != null and not #lists.isEmpty(weeklySanctions) and iterStat != null and iterStat.index < #lists.size(weeklySanctions) ? weeklySanctions[iterStat.index] : null}"
-                        th:replace="fragments/child-points :: child-points(${child}, ${weekSanction}, ${rules})">
+                        th:replace="~{fragments/child-points :: child-points(${child}, ${weekSanction}, ${rules})}">
                     </li>
                 </ul>
-                -->
             </div>
 
             <!-- No Children Message -->

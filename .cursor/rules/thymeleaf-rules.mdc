@@ -19,6 +19,8 @@ alwaysApply: true
 - Keep code **accessible (ARIA attributes)** and **mobile-friendly (responsive design)**.
 - Use  webjars and frontend-maven-plugin for web dependenciens ( alpine, htmx, tailwind) management
 
+- Use io.github.wimdeblauwe(htmx-spring-boot-thymeleaf) htmx maven plugin
+
 ## HTML Structure
 - Use **Thymeleaf syntax** (`th:text`, `th:if`, `th:each`, etc.) for dynamic content.
 - Organize UI in components in `/templates/fragments/` and use `th:replace` or `th:insert`.

@@ -29,6 +29,11 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class SanctionController {
 
+    private static final String    SANCTIONS_FRAGMENTS_CHILD_POINTS_POINTS = "sanctions/fragments/child-points :: points";
+    private static final String    WEEKLY_SANCTION = "weeklySanction";
+    private static final String    CHILD = "child";
+    private static final String    RULES = "rules";
+    private static final String    CONNECTED_USER_NAME = "connectedUserName";
     private final ChildService childService;
     private final RegleDisciplineService regleDisciplineService;
     private final WeeklySanctionService weeklySanctionService;
@@ -36,10 +41,10 @@ public class SanctionController {
     @GetMapping
     public String getSanctionsPage(Model model, @AuthenticationPrincipal UserDetails userDetails) {
         var rules = regleDisciplineService.getAllRules();
-        model.addAttribute("rules", rules);
+        model.addAttribute(RULES, rules);
 
         User user = (User) userDetails;
-        model.addAttribute("connectedUserName", user.getUsername());
+        model.addAttribute(CONNECTED_USER_NAME, user.getUsername());
         
         List<ChildDto> children = childService.getChildrenByParentId(user.getId());
         
@@ -81,20 +86,20 @@ public class SanctionController {
         try {
             User user = (User) userDetails;
             var updatedSanction = weeklySanctionService.applySanction(childId, ruleCode, user.getId());
-            model.addAttribute("weeklySanction", updatedSanction);
-            model.addAttribute("child", childService.getChildById(childId));
-            model.addAttribute("rules", regleDisciplineService.getAllRules());
-            return "sanctions/fragments/child-points :: points";
+            model.addAttribute(WEEKLY_SANCTION, updatedSanction);
+            model.addAttribute(CHILD, childService.getChildById(childId));
+            model.addAttribute(RULES, regleDisciplineService.getAllRules());
+            return SANCTIONS_FRAGMENTS_CHILD_POINTS_POINTS;
         } catch (Exception e) {
             log.error("Error applying sanction for child {} with rule {}: {}", childId, ruleCode, e.getMessage());
             // Try to initialize weekly points and retry
             try {
                 weeklySanctionService.initializeWeeklyPoints();
                 var updatedSanction = weeklySanctionService.applySanction(childId, ruleCode, ((User) userDetails).getId());
-                model.addAttribute("weeklySanction", updatedSanction);
-                model.addAttribute("child", childService.getChildById(childId));
-                model.addAttribute("rules", regleDisciplineService.getAllRules());
-                return "sanctions/fragments/child-points :: points";
+                model.addAttribute(WEEKLY_SANCTION, updatedSanction);
+                model.addAttribute(CHILD, childService.getChildById(childId));
+                model.addAttribute(RULES, regleDisciplineService.getAllRules());
+                return SANCTIONS_FRAGMENTS_CHILD_POINTS_POINTS;
             } catch (Exception ex) {
                 log.error("Failed to apply sanction after initialization: {}", ex.getMessage());
                 throw ex;
@@ -112,8 +117,8 @@ public class SanctionController {
         try {
             User user = (User) userDetails;
             var updatedSanction = weeklySanctionService.applySanction(childId, String.valueOf(points), user.getId());
-            model.addAttribute("weeklySanction", updatedSanction);
-            return "sanctions/fragments/child-points :: points";
+            model.addAttribute(WEEKLY_SANCTION, updatedSanction);
+            return SANCTIONS_FRAGMENTS_CHILD_POINTS_POINTS;
         } catch (Exception e) {
             log.error("Error applying points sanction for child {}: {}", childId, e.getMessage());
             throw e;
