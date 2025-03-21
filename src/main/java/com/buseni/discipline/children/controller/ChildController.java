@@ -32,6 +32,9 @@ public class ChildController {
     private static final String PARENT_ID_MODEL_ATTRIBUTE = "parentId";
     private static final String EDIT_MODE_ATTRIBUTE = "editMode";
     private final ChildService childService;
+    private static final String CHILDREN_LIST_FRAGMENT_CHILD_FORM = "children/list :: #childForm";
+    private static final String CHILDREN_LIST_FRAGMENT_CHILDREN_CONTAINER = "children/list :: #childrenContainer";
+    private static final String CHILDREN_LIST_FRAGMENT_CHILDREN_LIST = "children/list :: #childrenList";    
 
     @GetMapping
     public String getChildrenPage(Model model, Authentication authentication) {
@@ -43,19 +46,19 @@ public class ChildController {
         model.addAttribute(CHILDREN_MODEL_ATTRIBUTE, children);
         model.addAttribute(CHILD_DTO_MODEL_ATTRIBUTE, new ChildDto("", "", Integer.valueOf(0), Integer.valueOf(0)));
         model.addAttribute(PARENT_ID_MODEL_ATTRIBUTE, parentId);
-        return "children/list";
+        return CHILDREN_LIST_FRAGMENT_CHILDREN_LIST;
     }
 
     @GetMapping("/{parentId}/{childId}/edit")
     @HxRequest
-    public String getEditForm(@PathVariable UUID parentId,
+    public String getEditForm(@PathVariable String parentId,
                             @PathVariable String childId,
                             Model model) {
         ChildDto childDto = childService.getChildById(childId);
         model.addAttribute(CHILD_DTO_MODEL_ATTRIBUTE, childDto);
         model.addAttribute(PARENT_ID_MODEL_ATTRIBUTE, parentId);
         model.addAttribute(EDIT_MODE_ATTRIBUTE, true);
-        return "children/list :: #childForm";
+        return CHILDREN_LIST_FRAGMENT_CHILD_FORM;
     }
 
     @PostMapping("/{parentId}")
@@ -68,14 +71,14 @@ public class ChildController {
         if (bindingResult.hasErrors()) {
             model.addAttribute(CHILDREN_MODEL_ATTRIBUTE, childService.getChildrenByParentId(parentId));
             model.addAttribute(PARENT_ID_MODEL_ATTRIBUTE, parentId);
-            return "children/list :: #childForm";
+            return CHILDREN_LIST_FRAGMENT_CHILD_FORM;
         }
 
         childService.createChild(parentId, childDto);
         model.addAttribute(CHILDREN_MODEL_ATTRIBUTE, childService.getChildrenByParentId(parentId));
         model.addAttribute(CHILD_DTO_MODEL_ATTRIBUTE, new ChildDto("", "", Integer.valueOf(0), Integer.valueOf(0)));
         model.addAttribute(PARENT_ID_MODEL_ATTRIBUTE, parentId);
-        return "children/list :: #childrenContainer";
+        return CHILDREN_LIST_FRAGMENT_CHILDREN_CONTAINER;
     }
 
     @PutMapping("/{parentId}/{childId}")
@@ -90,13 +93,13 @@ public class ChildController {
             model.addAttribute(CHILDREN_MODEL_ATTRIBUTE, childService.getChildrenByParentId(parentId));
             model.addAttribute(PARENT_ID_MODEL_ATTRIBUTE, parentId);
             model.addAttribute(EDIT_MODE_ATTRIBUTE, true);
-            return "children/list :: #childForm";
+            return CHILDREN_LIST_FRAGMENT_CHILD_FORM;
         }
 
         childService.updateChild(childId, childDto);
         model.addAttribute(CHILDREN_MODEL_ATTRIBUTE, childService.getChildrenByParentId(parentId));
         model.addAttribute(CHILD_DTO_MODEL_ATTRIBUTE, new ChildDto("", "", Integer.valueOf(0), Integer.valueOf(0)));
         model.addAttribute(PARENT_ID_MODEL_ATTRIBUTE, parentId);
-        return "children/list :: #childrenContainer";
+        return CHILDREN_LIST_FRAGMENT_CHILDREN_CONTAINER;
     }
 } 
