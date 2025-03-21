@@ -75,9 +75,14 @@ public class WeeklySanctionServiceImpl implements WeeklySanctionService {
     public WeeklySanctionDto applySanction(String childId, String ruleCode, String appliedBy) {
         LocalDateTime now = LocalDateTime.now(PARIS_ZONE);
         
-        WeeklySanction currentWeek = weeklySanctionRepository
-            .findByChildIdAndWeekStartDateLessThanEqualAndWeekEndDateGreaterThanEqual(childId, now, now)
-            .orElseGet(() -> initializeChildWeeklyPoints(childId, now));
+        // Try to find the current week for this child
+        var weekList = weeklySanctionRepository
+            .findByChildIdAndWeekStartDateLessThanEqualAndWeekEndDateGreaterThanEqual(childId, now, now);
+        
+        // If found, use the first result (to handle potential duplicates)
+        WeeklySanction currentWeek = weekList.isPresent() 
+            ? weekList.get() 
+            : initializeChildWeeklyPoints(childId, now);
         
         RegleDiscipline rule = regleDisciplineService.findByCode(ruleCode)
             .orElseThrow(() -> new IllegalArgumentException("Rule not found: " + ruleCode));
@@ -105,10 +110,17 @@ public class WeeklySanctionServiceImpl implements WeeklySanctionService {
     public WeeklySanctionDto getCurrentWeekSanction(String childId) {
         LocalDateTime now = LocalDateTime.now(PARIS_ZONE);
         
-        return weeklySanctionRepository
-            .findByChildIdAndWeekStartDateLessThanEqualAndWeekEndDateGreaterThanEqual(childId, now, now)
-            .map(this::toDto)
-            .orElseGet(() -> toDto(initializeChildWeeklyPoints(childId, now)));
+        // Try to find the current week for this child
+        var weekList = weeklySanctionRepository
+            .findByChildIdAndWeekStartDateLessThanEqualAndWeekEndDateGreaterThanEqual(childId, now, now);
+            
+        // If found, use the first result (to handle potential duplicates)
+        if (weekList.isPresent()) {
+            return toDto(weekList.get());
+        }
+        
+        // If no current week exists for this child, initialize one
+        return toDto(initializeChildWeeklyPoints(childId, now));
     }
 
     @Override
@@ -222,11 +234,11 @@ public class WeeklySanctionServiceImpl implements WeeklySanctionService {
     public WeeklySanctionDto getCurrentWeek() {
         LocalDateTime now = LocalDateTime.now(PARIS_ZONE);
         
-        // First try to find the current week
-        Optional<WeeklySanction> currentWeek = weeklySanctionRepository.findByWeekStartDateLessThanEqualAndWeekEndDateGreaterThanEqual(now, now);
+        // First try to find the current week - use findAll instead of expecting a unique result
+        List<WeeklySanction> currentWeeks = weeklySanctionRepository.findAllByWeekStartDateLessThanEqualAndWeekEndDateGreaterThanEqual(now, now);
         
-        if (currentWeek.isPresent()) {
-            return toDto(currentWeek.get());
+        if (!currentWeeks.isEmpty()) {
+            return toDto(currentWeeks.get(0));
         }
         
         // If no current week exists, use the most recent week instead

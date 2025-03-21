@@ -25,6 +25,10 @@ public interface WeeklySanctionRepository extends MongoRepository<WeeklySanction
     Optional<WeeklySanction> findByWeekStartDateLessThanEqualAndWeekEndDateGreaterThanEqual(LocalDateTime now,
             LocalDateTime now2);
 
+    @Query("{'weekStartDate': {$lte: ?0}, 'weekEndDate': {$gte: ?1}}")
+    List<WeeklySanction> findAllByWeekStartDateLessThanEqualAndWeekEndDateGreaterThanEqual(
+            LocalDateTime currentDate, LocalDateTime currentDate2);
+
     Collection<WeeklySanction> findByParentIdAndWeekNumber(String parentId, Integer weekNumber);
 
     Collection<WeeklySanction> findByParentIdAndWeekStartDateLessThanEqualAndWeekEndDateGreaterThanEqual(String parentId,
