@@ -37,7 +37,7 @@ public class SanctionController {
     private static final String CHILD_SANCTIONS = "childSanctions";
     private static final String CHILD_SANCTION = "childSanction";           
     private static final String ERROR_ATTR = "error";       
-    
+    private static final String SANCTION_POINTS_FRAGMENT = "sanctions/fragments/child-points :: points";
 
     // Dependencies
     private final ChildService childService;
@@ -119,7 +119,7 @@ public class SanctionController {
             // Add attributes to the model
             model.addAttribute(CHILD_SANCTION, childSanction);
             
-            return "sanctions/fragments/child-points :: points";
+            return SANCTION_POINTS_FRAGMENT;
         } catch (Exception e) {
             log.error("Error applying sanction rule {} to child {}: {}", ruleCode, childId, e.getMessage(), e);
             
@@ -135,7 +135,7 @@ public class SanctionController {
                 model.addAttribute(ERROR_ATTR, messageSource.getMessage("sanction.retrieve.error", null, Locale.getDefault()));
                 var rules = regleDisciplineService.getAllRules();
                 model.addAttribute(RULES_ATTR, rules);
-                return "sanctions/fragments/child-points :: points";
+                return SANCTION_POINTS_FRAGMENT;
             }
             
             var rules = regleDisciplineService.getAllRules();
@@ -148,7 +148,7 @@ public class SanctionController {
             model.addAttribute(RULES_ATTR, rules);
             model.addAttribute(ERROR_ATTR, messageSource.getMessage("sanction.apply.error", null, Locale.getDefault()));
             
-            return "sanctions/fragments/child-points :: points";
+            return SANCTION_POINTS_FRAGMENT;
         }
     }
     
@@ -181,7 +181,7 @@ public class SanctionController {
             model.addAttribute(CHILD_SANCTION, childSanction);
             model.addAttribute(RULES_ATTR, rules);
             
-            return "sanctions/fragments/child-points :: points";
+            return SANCTION_POINTS_FRAGMENT;
         } catch (Exception e) {
             log.error("Error applying points {} to child {}: {}", points, childId, e.getMessage(), e);
             
@@ -198,7 +198,7 @@ public class SanctionController {
             model.addAttribute(RULES_ATTR, rules);
             model.addAttribute( ERROR_ATTR,     messageSource.getMessage("sanction.apply.error", null, Locale.getDefault()));
             
-            return "sanctions/fragments/child-points :: points";
+            return SANCTION_POINTS_FRAGMENT;
         }
     }
 } 

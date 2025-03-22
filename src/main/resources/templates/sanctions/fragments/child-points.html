@@ -43,8 +43,9 @@
                            hx-target='#points-' + ${childSanction.childId},
                            hx-swap='outerHTML'"
                     class="px-3 py-1 text-sm font-medium rounded-full bg-gray-200 dark:bg-gray-700 
-                          hover:bg-red-100 dark:hover:bg-red-900 text-gray-700 dark:text-gray-300
-                          hover:text-red-700 dark:hover:text-red-300 transition-colors duration-150">
+                          hover:bg-red-100 hover:text-red-700 hover:shadow-md hover:scale-105
+                          dark:hover:bg-red-900 dark:text-gray-300 dark:hover:text-red-300
+                          transition-all duration-200 ease-in-out">
                 -5
             </button>
             
@@ -55,8 +56,9 @@
                            hx-target='#points-' + ${childSanction.childId},
                            hx-swap='outerHTML'"
                     class="px-3 py-1 text-sm font-medium rounded-full bg-gray-200 dark:bg-gray-700 
-                          hover:bg-green-100 dark:hover:bg-green-900 text-gray-700 dark:text-gray-300
-                          hover:text-green-700 dark:hover:text-green-300 transition-colors duration-150">
+                          hover:bg-green-100 hover:text-green-700 hover:shadow-md hover:scale-105
+                          dark:hover:bg-green-900 dark:text-gray-300 dark:hover:text-green-300
+                          transition-all duration-200 ease-in-out">
                 +1
             </button>
             <button th:each="points : ${#numbers.sequence(2, 2)}"
@@ -65,8 +67,9 @@
                            hx-target='#points-' + ${childSanction.childId},
                            hx-swap='outerHTML'"
                     class="px-3 py-1 text-sm font-medium rounded-full bg-gray-200 dark:bg-gray-700 
-                          hover:bg-green-100 dark:hover:bg-green-900 text-gray-700 dark:text-gray-300
-                          hover:text-green-700 dark:hover:text-green-300 transition-colors duration-150">
+                          hover:bg-green-100 hover:text-green-700 hover:shadow-md hover:scale-105
+                          dark:hover:bg-green-900 dark:text-gray-300 dark:hover:text-green-300
+                          transition-all duration-200 ease-in-out">
                 +2
             </button>
             <button th:each="points : ${#numbers.sequence(5, 5)}"
@@ -75,8 +78,9 @@
                            hx-target='#points-' + ${childSanction.childId},
                            hx-swap='outerHTML'"
                     class="px-3 py-1 text-sm font-medium rounded-full bg-gray-200 dark:bg-gray-700 
-                          hover:bg-green-100 dark:hover:bg-green-900 text-gray-700 dark:text-gray-300
-                          hover:text-green-700 dark:hover:text-green-300 transition-colors duration-150">
+                          hover:bg-green-100 hover:text-green-700 hover:shadow-md hover:scale-105
+                          dark:hover:bg-green-900 dark:text-gray-300 dark:hover:text-green-300
+                          transition-all duration-200 ease-in-out">
                 +5
             </button>
         </div>
