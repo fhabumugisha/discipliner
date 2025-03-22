@@ -82,9 +82,9 @@
         </div>
         
         <!-- Last update information -->
-        <div class="mt-3 text-xs text-gray-500 dark:text-gray-400" th:if="${childSanction.hasSanction() && childSanction.sanction.lastUpdated() != null}">
+        <div class="mt-3 text-xs text-gray-500 dark:text-gray-400" th:if="${childSanction.hasSanction() && !#lists.isEmpty(childSanction.sanction.sanctions()) && childSanction.sanction.sanctions().get(0).appliedAt() != null}">
             <span th:text="#{sanctions.last.updated}">Last updated:</span>
-            <span th:text="${#temporals.format(childSanction.sanction.lastUpdated(), 'dd MMM, HH:mm')}">Jan 1, 10:30</span>
+            <span th:text="${#temporals.format(childSanction.sanction.sanctions().get(0).appliedAt(), 'dd MMM, HH:mm')}">Jan 1, 10:30</span>
         </div>
     </div>
 </body>

@@ -73,6 +73,7 @@ public class WeeklySanctionServiceImpl implements WeeklySanctionService {
 
     @Override
     public WeeklySanctionDto applySanction(String childId, String ruleCode, String appliedBy) {
+        log.debug("Applying sanction with rule code: {} for child: {} by user: {}", ruleCode, childId, appliedBy);
         LocalDateTime now = LocalDateTime.now(PARIS_ZONE);
         
         // Try to find the current week for this child
@@ -84,43 +85,78 @@ public class WeeklySanctionServiceImpl implements WeeklySanctionService {
             ? weekList.get() 
             : initializeChildWeeklyPoints(childId, now);
         
-        RegleDiscipline rule = regleDisciplineService.findByCode(ruleCode)
-            .orElseThrow(() -> new IllegalArgumentException("Rule not found: " + ruleCode));
+        int pointsChange;
+        String ruleDescription = null;
         
-        // Create sanction history entry
-        SanctionHistory sanctionHistory = new SanctionHistory(
-            rule.code(),
-            rule.description(),
-            rule.points(),
-            now,
-            appliedBy
-        );
-        
-        // Update points and add sanction to history
-        currentWeek.getSanctions().add(sanctionHistory);
-        currentWeek.setFinalPoints(currentWeek.getFinalPoints() + rule.points());
-        currentWeek.setLastModifiedAt(now);
-        currentWeek.setLastModifiedBy(appliedBy);
-        
-        WeeklySanction saved = weeklySanctionRepository.save(currentWeek);
-        return toDto(saved);
+        // Handle rule code: if it's a known rule code, use the rule; otherwise try to parse as a points value
+        try {
+            Optional<RegleDiscipline> ruleOpt = regleDisciplineService.findByCode(ruleCode);
+            
+            if (ruleOpt.isPresent()) {
+                RegleDiscipline rule = ruleOpt.get();
+                pointsChange = rule.points();
+                ruleDescription = rule.description();
+                log.debug("Found rule: {}, points: {}", rule.code(), rule.points());
+            } else {
+                // If rule not found, try to parse as a direct points value
+                try {
+                    pointsChange = Integer.parseInt(ruleCode);
+                    log.debug("No rule found, using points value: {}", pointsChange);
+                } catch (NumberFormatException e) {
+                    throw new IllegalArgumentException("Invalid rule code or points value: " + ruleCode);
+                }
+            }
+            
+            // Create sanction history entry
+            SanctionHistory sanctionHistory = new SanctionHistory(
+                ruleCode,
+                ruleDescription,
+                pointsChange,
+                now,
+                appliedBy
+            );
+            
+            // Add sanction to history and update points
+            currentWeek.getSanctions().add(0, sanctionHistory); // Add at beginning for most recent first
+            int newPoints = currentWeek.getFinalPoints() + pointsChange;
+            currentWeek.setFinalPoints(newPoints);
+            currentWeek.setLastModifiedAt(now);
+            currentWeek.setLastModifiedBy(appliedBy);
+            
+            log.debug("Saving weekly sanction. Previous points: {}, New points: {}", 
+                     currentWeek.getFinalPoints() - pointsChange, currentWeek.getFinalPoints());
+            
+            WeeklySanction saved = weeklySanctionRepository.save(currentWeek);
+            return toDto(saved);
+        } catch (Exception e) {
+            log.error("Error applying sanction: {}", e.getMessage(), e);
+            throw e;
+        }
     }
 
     @Override
     public WeeklySanctionDto getCurrentWeekSanction(String childId) {
+        log.debug("Getting current week sanction for child: {}", childId);
         LocalDateTime now = LocalDateTime.now(PARIS_ZONE);
         
-        // Try to find the current week for this child
-        var weekList = weeklySanctionRepository
-            .findByChildIdAndWeekStartDateLessThanEqualAndWeekEndDateGreaterThanEqual(childId, now, now);
+        try {
+            // Try to find the current week for this child
+            var weekList = weeklySanctionRepository
+                .findByChildIdAndWeekStartDateLessThanEqualAndWeekEndDateGreaterThanEqual(childId, now, now);
+                
+            // If found, use the first result (to handle potential duplicates)
+            if (weekList.isPresent()) {
+                log.debug("Found existing week sanction for child: {}", childId);
+                return toDto(weekList.get());
+            }
             
-        // If found, use the first result (to handle potential duplicates)
-        if (weekList.isPresent()) {
-            return toDto(weekList.get());
+            // If no current week exists for this child, initialize one
+            log.debug("No current week found for child: {}, initializing a new one", childId);
+            return toDto(initializeChildWeeklyPoints(childId, now));
+        } catch (Exception e) {
+            log.error("Error getting current week sanction for child {}: {}", childId, e.getMessage(), e);
+            throw e;
         }
-        
-        // If no current week exists for this child, initialize one
-        return toDto(initializeChildWeeklyPoints(childId, now));
     }
 
     @Override
@@ -173,46 +209,61 @@ public class WeeklySanctionServiceImpl implements WeeklySanctionService {
     }
     
     private WeeklySanctionDto toDto(WeeklySanction sanction) {
-        Child child = childRepository.findById(sanction.getChildId())
-            .orElseThrow(() -> new IllegalArgumentException("Child not found: " + sanction.getChildId()));
-            
-        List<SanctionHistoryDto> sanctionDtos = sanction.getSanctions().stream()
-                .map(s -> {
-                    String appliedByName = userRepository.findById(s.appliedBy())
-                    .map(user -> user.getFirstName() + " " + user.getLastName())
-                    .orElse("Unknown");
-                    
-                return SanctionHistoryDto.builder()
-                    .ruleCode(s.ruleCode())
-                    .ruleDescription(s.ruleDescription())
-                    .pointsChange(s.points())
-                    .appliedAt(s.appliedAt())
-                    .appliedBy(s.appliedBy())
-                    .appliedByName(appliedByName)
-                    .build();       
-            })
-            .toList();
-            
-        // Calculate next reset date
-        LocalDateTime nextReset = sanction.getWeekEndDate()
-            .plusDays(1)
-            .withHour(1)
-            .withMinute(0)
-            .withSecond(0);
-            
-        return new WeeklySanctionDto(
-            sanction.getId(),
-            sanction.getChildId(),
-            child.getName(),
-            sanction.getWeekNumber(),
-            sanction.getYear(),
-            sanction.getWeekStartDate(),
-            sanction.getWeekEndDate(),
-            sanction.getInitialPoints(),
-            sanction.getFinalPoints(),
-            sanctionDtos,
-            nextReset
-        );
+        try {
+            Child child = childRepository.findById(sanction.getChildId())
+                .orElseThrow(() -> new IllegalArgumentException("Child not found: " + sanction.getChildId()));
+                
+            List<SanctionHistoryDto> sanctionDtos = sanction.getSanctions().stream()
+                    .map(s -> {
+                        String appliedByName = "Unknown";
+                        try {
+                            appliedByName = userRepository.findById(s.appliedBy())
+                                .map(user -> user.getFirstName() + " " + user.getLastName())
+                                .orElse("Unknown");
+                        } catch (Exception e) {
+                            log.warn("Could not find user with ID: {}", s.appliedBy());
+                        }
+                        
+                    return SanctionHistoryDto.builder()
+                        .id(sanction.getId() + "_" + s.appliedAt().toString()) // Generate a unique ID
+                        .childId(sanction.getChildId())
+                        .childName(child.getName())
+                        .ruleCode(s.ruleCode())
+                        .ruleDescription(s.ruleDescription())
+                        .pointsChange(s.points())
+                        .pointsBefore(sanction.getFinalPoints() - s.points()) // Approximate previous points
+                        .pointsAfter(sanction.getFinalPoints())
+                        .appliedAt(s.appliedAt())
+                        .appliedBy(s.appliedBy())
+                        .appliedByName(appliedByName)
+                        .build();       
+                })
+                .toList();
+                
+            // Calculate next reset date
+            LocalDateTime nextReset = sanction.getWeekEndDate()
+                .plusDays(1)
+                .withHour(1)
+                .withMinute(0)
+                .withSecond(0);
+                
+            return new WeeklySanctionDto(
+                sanction.getId(),
+                sanction.getChildId(),
+                child.getName(),
+                sanction.getWeekNumber(),
+                sanction.getYear(),
+                sanction.getWeekStartDate(),
+                sanction.getWeekEndDate(),
+                sanction.getInitialPoints(),
+                sanction.getFinalPoints(),
+                sanctionDtos,
+                nextReset
+            );
+        } catch (Exception e) {
+            log.error("Error creating WeeklySanctionDto: {}", e.getMessage(), e);
+            throw new RuntimeException("Error creating WeeklySanctionDto", e);
+        }
     }
 
     @Override

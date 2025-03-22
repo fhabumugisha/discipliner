@@ -17,6 +17,7 @@ public interface WeeklySanctionRepository extends MongoRepository<WeeklySanction
     
     List<WeeklySanction> findByChildIdOrderByWeekStartDateDesc(String childId);
     
+    @Query("{'childId': ?0, 'weekStartDate': {$lte: ?1}, 'weekEndDate': {$gte: ?2}}")
     Optional<WeeklySanction> findByChildIdAndWeekStartDateLessThanEqualAndWeekEndDateGreaterThanEqual(
         String childId, LocalDateTime currentDate, LocalDateTime currentDate2);
     

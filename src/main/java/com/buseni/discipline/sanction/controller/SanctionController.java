@@ -97,29 +97,42 @@ public class SanctionController {
         log.debug("Applying sanction rule {} to child {}", ruleCode, childId);
         
         try {
-            // Apply the sanction
-            WeeklySanctionDto weeklySanction = weeklySanctionService.applySanction(childId, ruleCode, user.getId());
+            // Get the rules first so they are available even if there's an error
+            var rules = regleDisciplineService.getAllRules();
+            model.addAttribute("rules", rules);
             
             // Get the child
             ChildDto child = childService.getChildById(childId);
+            model.addAttribute("child", child);
             
-            // Get the rules
-            var rules = regleDisciplineService.getAllRules();
+            // Apply the sanction - this may throw an exception
+            WeeklySanctionDto weeklySanction = weeklySanctionService.applySanction(childId, ruleCode, user.getId());
             
             // Create a ChildSanctionViewDto
             ChildSanctionViewDto childSanction = new ChildSanctionViewDto(child, weeklySanction);
             
             // Add attributes to the model
             model.addAttribute("childSanction", childSanction);
-            model.addAttribute("rules", rules);
             
             return "sanctions/fragments/child-points :: points";
         } catch (Exception e) {
             log.error("Error applying sanction rule {} to child {}: {}", ruleCode, childId, e.getMessage(), e);
             
             // Get the child and current sanctions to show current state
-            ChildDto child = childService.getChildById(childId);
-            WeeklySanctionDto currentSanction = weeklySanctionService.getCurrentWeekSanction(childId);
+            ChildDto child = null;
+            WeeklySanctionDto currentSanction = null;
+            
+            try {
+                child = childService.getChildById(childId);
+                currentSanction = weeklySanctionService.getCurrentWeekSanction(childId);
+            } catch (Exception ex) {
+                log.error("Error retrieving child or current sanction: {}", ex.getMessage());
+                model.addAttribute("error", "Could not retrieve child or current sanction data.");
+                var rules = regleDisciplineService.getAllRules();
+                model.addAttribute("rules", rules);
+                return "sanctions/fragments/child-points :: points";
+            }
+            
             var rules = regleDisciplineService.getAllRules();
             
             // Create view DTO with current data

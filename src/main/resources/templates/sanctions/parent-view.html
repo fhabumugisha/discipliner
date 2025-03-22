@@ -27,7 +27,7 @@
                             <span th:text="#{sanctions.back.to.dashboard}">Back to Sanctions</span>
                         </a>
                     </div>
-                </div>
+            </div>
 
                 <!-- Week Selection -->
                 <div class="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg mb-6">
@@ -54,14 +54,14 @@
                                 <span th:text="#{sanctions.parent.view.load}">Load</span>
                             </button>
                         </form>
-                    </div>
-                </div>
+                                    </div>
+                                </div>
 
                 <!-- Week Summary Section -->
                 <div id="week-summary" class="mb-6">
                     <div class="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg">
                         <div class="px-4 py-5 sm:px-6 flex justify-between items-center">
-                            <div>
+                                <div>
                                 <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white" th:text="#{sanctions.parent.view.week.summary}">Week Summary</h3>
                                 <p class="mt-1 max-w-2xl text-sm text-gray-500 dark:text-gray-400">
                                     <span class="font-medium" th:text="'Week ' + ${selectedWeek.weekNumber()} + ':'">Week 1:</span>
@@ -99,10 +99,10 @@
                                             </div>
                                             <div class="text-xs text-gray-500 dark:text-gray-400">
                                                 <span th:text="#{sanctions.parent.view.points}">points</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
+                    </div>
+                            </div>
+                        </div>
+
                                     <!-- Progress bar -->
                                     <div class="w-full h-2 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden">
                                         <div th:style="'width:' + ${childSummary.currentPoints()} + '%'"
@@ -121,7 +121,7 @@
                                            th:text="#{sanctions.parent.view.view.details}">
                                             View details →
                                         </a>
-                                    </div>
+                                </div>
                                 </div>
                             </div>
                         </div>
@@ -135,8 +135,8 @@
                         <p class="mt-1 max-w-2xl text-sm text-gray-500 dark:text-gray-400" th:text="#{sanctions.parent.view.recent.activity.description}">
                             Last 10 disciplinary actions across all children
                         </p>
-                    </div>
-                    
+            </div>
+
                     <!-- Activity Feed -->
                     <div class="border-t border-gray-200 dark:border-gray-700">
                         <ul class="divide-y divide-gray-200 dark:divide-gray-700">
