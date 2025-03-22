@@ -1,9 +1,11 @@
 package com.buseni.discipline.sanction.controller;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.springframework.context.MessageSource;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -33,12 +35,15 @@ public class SanctionController {
     private static final String WEEKLY_SANCTIONS_ATTR = "weeklySanctions";
     private static final String RULES_ATTR = "rules";
     private static final String CHILD_SANCTIONS = "childSanctions";
+    private static final String CHILD_SANCTION = "childSanction";           
+    private static final String ERROR_ATTR = "error";       
     
+
     // Dependencies
     private final ChildService childService;
     private final WeeklySanctionService weeklySanctionService;
     private final RegleDisciplineService regleDisciplineService;
-    
+    private final MessageSource messageSource;
     /**
      * Get the sanctions list page
      */
@@ -99,11 +104,11 @@ public class SanctionController {
         try {
             // Get the rules first so they are available even if there's an error
             var rules = regleDisciplineService.getAllRules();
-            model.addAttribute("rules", rules);
+            model.addAttribute( RULES_ATTR, rules);
             
             // Get the child
             ChildDto child = childService.getChildById(childId);
-            model.addAttribute("child", child);
+            model.addAttribute( CHILDREN_ATTR, child);
             
             // Apply the sanction - this may throw an exception
             WeeklySanctionDto weeklySanction = weeklySanctionService.applySanction(childId, ruleCode, user.getId());
@@ -112,7 +117,7 @@ public class SanctionController {
             ChildSanctionViewDto childSanction = new ChildSanctionViewDto(child, weeklySanction);
             
             // Add attributes to the model
-            model.addAttribute("childSanction", childSanction);
+            model.addAttribute(CHILD_SANCTION, childSanction);
             
             return "sanctions/fragments/child-points :: points";
         } catch (Exception e) {
@@ -127,9 +132,9 @@ public class SanctionController {
                 currentSanction = weeklySanctionService.getCurrentWeekSanction(childId);
             } catch (Exception ex) {
                 log.error("Error retrieving child or current sanction: {}", ex.getMessage());
-                model.addAttribute("error", "Could not retrieve child or current sanction data.");
+                model.addAttribute(ERROR_ATTR, messageSource.getMessage("sanction.retrieve.error", null, Locale.getDefault()));
                 var rules = regleDisciplineService.getAllRules();
-                model.addAttribute("rules", rules);
+                model.addAttribute(RULES_ATTR, rules);
                 return "sanctions/fragments/child-points :: points";
             }
             
@@ -139,9 +144,9 @@ public class SanctionController {
             ChildSanctionViewDto childSanction = new ChildSanctionViewDto(child, currentSanction);
             
             // Add attributes to the model
-            model.addAttribute("childSanction", childSanction);
-            model.addAttribute("rules", rules);
-            model.addAttribute("error", "Could not apply sanction. Please try again.");
+            model.addAttribute(CHILD_SANCTION, childSanction);
+            model.addAttribute(RULES_ATTR, rules);
+            model.addAttribute(ERROR_ATTR, messageSource.getMessage("sanction.apply.error", null, Locale.getDefault()));
             
             return "sanctions/fragments/child-points :: points";
         }
@@ -173,8 +178,8 @@ public class SanctionController {
             ChildSanctionViewDto childSanction = new ChildSanctionViewDto(child, weeklySanction);
             
             // Add attributes to the model
-            model.addAttribute("childSanction", childSanction);
-            model.addAttribute("rules", rules);
+            model.addAttribute(CHILD_SANCTION, childSanction);
+            model.addAttribute(RULES_ATTR, rules);
             
             return "sanctions/fragments/child-points :: points";
         } catch (Exception e) {
@@ -189,9 +194,9 @@ public class SanctionController {
             ChildSanctionViewDto childSanction = new ChildSanctionViewDto(child, currentSanction);
             
             // Add attributes to the model
-            model.addAttribute("childSanction", childSanction);
-            model.addAttribute("rules", rules);
-            model.addAttribute("error", "Could not apply points adjustment. Please try again.");
+            model.addAttribute(CHILD_SANCTION, childSanction);
+            model.addAttribute(RULES_ATTR, rules);
+            model.addAttribute( ERROR_ATTR,     messageSource.getMessage("sanction.apply.error", null, Locale.getDefault()));
             
             return "sanctions/fragments/child-points :: points";
         }

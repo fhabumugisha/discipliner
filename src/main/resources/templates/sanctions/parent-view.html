@@ -43,9 +43,9 @@
                                         hx-trigger="change">
                                     <option value="current" th:selected="${weeklySanctionId == null}" th:text="#{sanctions.parent.view.current.week}">Current Week</option>
                                     <option th:each="week : ${availableWeeks}" 
-                                            th:value="${week.id()}" 
-                                            th:text="${'Week ' + week.weekNumber() + ': ' + #temporals.format(week.weekStartDate(), 'dd MMM')} + ' - ' + ${#temporals.format(week.weekEndDate(), 'dd MMM yyyy')}"
-                                            th:selected="${weeklySanctionId != null && weeklySanctionId == week.id()}">
+                                            th:value="${week.id}" 
+                                            th:text="${'Week ' + week.weekNumber + ': ' + #temporals.format(week.weekStartDate, 'dd MMM')} + ' - ' + ${#temporals.format(week.weekEndDate, 'dd MMM yyyy')}"
+                                            th:selected="${weeklySanctionId != null && weeklySanctionId == week.id}">
                                         Week 1: 01 Jan - 07 Jan 2023
                                     </option>
                                 </select>
@@ -64,8 +64,8 @@
                                 <div>
                                 <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white" th:text="#{sanctions.parent.view.week.summary}">Week Summary</h3>
                                 <p class="mt-1 max-w-2xl text-sm text-gray-500 dark:text-gray-400">
-                                    <span class="font-medium" th:text="'Week ' + ${selectedWeek.weekNumber()} + ':'">Week 1:</span>
-                                    <span th:text="${#temporals.format(selectedWeek.weekStartDate(), 'dd MMM')} + ' - ' + ${#temporals.format(selectedWeek.weekEndDate(), 'dd MMM yyyy')}">
+                                    <span class="font-medium" th:text="'Week ' + ${selectedWeek.weekNumber} + ':'">Week 1:</span>
+                                    <span th:text="${#temporals.format(selectedWeek.weekStartDate, 'dd MMM')} + ' - ' + ${#temporals.format(selectedWeek.weekEndDate, 'dd MMM yyyy')}">
                                         01 Jan - 07 Jan 2023
                                     </span>
                                 </p>
@@ -86,16 +86,16 @@
                                     <!-- Top section with name and stats -->
                                     <div class="flex justify-between items-start mb-3">
                                         <div>
-                                            <h4 class="text-lg font-medium text-gray-900 dark:text-white" th:text="${childSummary.childName()}">Child Name</h4>
+                                            <h4 class="text-lg font-medium text-gray-900 dark:text-white" th:text="${childSummary.childName}">Child Name</h4>
                                             <p class="text-sm text-gray-500 dark:text-gray-400">
-                                                <span th:text="#{sanctions.parent.view.initial.points} + ': ' + ${childSummary.initialPoints()}">Initial: 100</span>
+                                                <span th:text="#{sanctions.parent.view.initial.points} + ': ' + ${childSummary.initialPoints}">Initial: 100</span>
                                             </p>
                                         </div>
                                         <div class="text-right">
                                             <div class="text-2xl font-bold" 
-                                                 th:classappend="${childSummary.currentPoints() >= 70 ? 'text-green-600 dark:text-green-400' : 
-                                                                 (childSummary.currentPoints() >= 40 ? 'text-yellow-600 dark:text-yellow-400' : 'text-red-600 dark:text-red-400')}">
-                                                <span th:text="${childSummary.currentPoints()}">85</span>
+                                                 th:classappend="${childSummary.currentPoints >= 70 ? 'text-green-600 dark:text-green-400' : 
+                                                                 (childSummary.currentPoints >= 40 ? 'text-yellow-600 dark:text-yellow-400' : 'text-red-600 dark:text-red-400')}">
+                                                <span th:text="${childSummary.currentPoints}">85</span>
                                             </div>
                                             <div class="text-xs text-gray-500 dark:text-gray-400">
                                                 <span th:text="#{sanctions.parent.view.points}">points</span>
@@ -105,18 +105,18 @@
 
                                     <!-- Progress bar -->
                                     <div class="w-full h-2 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden">
-                                        <div th:style="'width:' + ${childSummary.currentPoints()} + '%'"
-                                             th:class="${childSummary.currentPoints() >= 70 ? 'bg-green-500' : 
-                                                       (childSummary.currentPoints() >= 40 ? 'bg-yellow-500' : 'bg-red-500')}"
+                                        <div th:style="'width:' + ${childSummary.currentPoints} + '%'"
+                                             th:class="${childSummary.currentPoints >= 70 ? 'bg-green-500' : 
+                                                       (childSummary.currentPoints >= 40 ? 'bg-yellow-500' : 'bg-red-500')}"
                                              class="h-full transition-all duration-500"></div>
                                     </div>
                                     
                                     <!-- Sanctions count -->
                                     <div class="mt-3 flex justify-between items-center text-xs text-gray-500 dark:text-gray-400">
-                                        <span th:text="#{sanctions.parent.view.total.incidents} + ': ' + ${childSummary.sanctions().size()}">
+                                        <span th:text="#{sanctions.parent.view.total.incidents} + ': ' + ${childSummary.sanctions.size()}">
                                             Total incidents: 3
                                         </span>
-                                        <a th:href="@{/sanctions/history(childId=${childSummary.childId()}, dateFrom=${#temporals.format(selectedWeek.weekStartDate(), 'yyyy-MM-dd')}, dateTo=${#temporals.format(selectedWeek.weekEndDate(), 'yyyy-MM-dd')})}"
+                                        <a th:href="@{/sanctions/history(childId=${childSummary.childId}, dateFrom=${#temporals.format(selectedWeek.weekStartDate, 'yyyy-MM-dd')}, dateTo=${#temporals.format(selectedWeek.weekEndDate, 'yyyy-MM-dd')})}"
                                            class="font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300"
                                            th:text="#{sanctions.parent.view.view.details}">
                                             View details →
@@ -144,24 +144,24 @@
                                 <div class="flex items-center justify-between">
                                     <div class="flex items-center space-x-4">
                                         <div class="flex-shrink-0">
-                                            <div th:class="${activity.pointsChange() < 0 ? 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200' : 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200'}"
+                                            <div th:class="${activity.pointsChange < 0 ? 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200' : 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200'}"
                                                  class="w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium">
-                                                <span th:text="${activity.pointsChange() < 0 ? activity.pointsChange() : '+' + activity.pointsChange()}">-5</span>
+                                                <span th:text="${activity.pointsChange < 0 ? activity.pointsChange : '+' + activity.pointsChange}">-5</span>
                                             </div>
                                         </div>
                                         <div>
                                             <p class="text-sm font-medium text-gray-900 dark:text-white">
-                                                <span th:text="${activity.childName()}">Child Name</span>
-                                                <span th:if="${activity.ruleCode() != null}" class="ml-1 px-2 py-0.5 text-xs rounded-full bg-gray-100 dark:bg-gray-600 text-gray-800 dark:text-gray-200" th:text="${activity.ruleCode()}">R01</span>
+                                                <span th:text="${activity.childName}">Child Name</span>
+                                                <span th:if="${activity.ruleCode != null}" class="ml-1 px-2 py-0.5 text-xs rounded-full bg-gray-100 dark:bg-gray-600 text-gray-800 dark:text-gray-200" th:text="${activity.ruleCode}">R01</span>
                                             </p>
                                             <p class="text-xs text-gray-500 dark:text-gray-400">
-                                                <span th:text="${activity.ruleDescription() != null ? activity.ruleDescription() : activity.pointsChange() < 0 ? 'Points deduction' : 'Points addition'}">Rule Description</span>
+                                                <span th:text="${activity.ruleDescription != null ? activity.ruleDescription : activity.pointsChange < 0 ? 'Points deduction' : 'Points addition'}">Rule Description</span>
                                             </p>
                                         </div>
                                     </div>
                                     <div class="text-right text-xs text-gray-500 dark:text-gray-400">
-                                        <div th:text="${#temporals.format(activity.appliedAt(), 'dd MMM, HH:mm')}">01 Jan, 14:30</div>
-                                        <div th:text="${activity.appliedByName()}">Parent Name</div>
+                                        <div th:text="${#temporals.format(activity.appliedAt, 'dd MMM, HH:mm')}">01 Jan, 14:30</div>
+                                        <div th:text="${activity.appliedByName}">Parent Name</div>
                                     </div>
                                 </div>
                             </li>
