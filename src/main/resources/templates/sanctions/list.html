@@ -111,15 +111,6 @@
                                 </span>
                             </div>
                             
-                            <!-- Progress bar -->
-                            <div class="w-full h-4 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                                <div th:if="${childSanction.hasSanction}"
-                                     th:style="'width: ' + ${childSanction.currentPoints} + '%'"
-                                     th:class="${childSanction.progressBarColorClass}"
-                                     class="h-full transition-all duration-500">
-                                </div>
-                            </div>
-                            
                             <!-- Points info -->
                             <div class="mt-1 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
                                 <span th:text="#{sanctions.start.week}">Start of week</span>

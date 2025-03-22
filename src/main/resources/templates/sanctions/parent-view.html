@@ -103,14 +103,6 @@
                             </div>
                         </div>
 
-                                    <!-- Progress bar -->
-                                    <div class="w-full h-2 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden">
-                                        <div th:style="'width:' + ${childSummary.currentPoints} + '%'"
-                                             th:class="${childSummary.currentPoints >= 70 ? 'bg-green-500' : 
-                                                       (childSummary.currentPoints >= 40 ? 'bg-yellow-500' : 'bg-red-500')}"
-                                             class="h-full transition-all duration-500"></div>
-                                    </div>
-                                    
                                     <!-- Sanctions count -->
                                     <div class="mt-3 flex justify-between items-center text-xs text-gray-500 dark:text-gray-400">
                                         <span th:text="#{sanctions.parent.view.total.incidents} + ': ' + ${childSummary.sanctions.size()}">
