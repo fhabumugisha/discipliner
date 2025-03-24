@@ -29,6 +29,7 @@ public class ChildInvitationController {
     private final ChildService childService;
     private final MessageSource messageSource;
     private static final String MESSAGE_ATTR = "message";
+    private static final String ERROR_ATTR = "error";   
 
     @GetMapping("/form")
     @HxRequest
@@ -62,7 +63,7 @@ public class ChildInvitationController {
             model.addAttribute("success", true);
             model.addAttribute(MESSAGE_ATTR, messageSource.getMessage("invitation.sent.success", null, Locale.getDefault()));
         } catch (IllegalStateException e) {
-            model.addAttribute("error", messageSource.getMessage(e.getMessage(), null, Locale.getDefault()));
+            model.addAttribute( ERROR_ATTR, messageSource.getMessage(e.getMessage(), null, Locale.getDefault()));
         }
 
         return "fragments/invitation-result :: result";
@@ -75,7 +76,7 @@ public class ChildInvitationController {
             model.addAttribute("success", true);
             model.addAttribute(MESSAGE_ATTR, messageSource.getMessage("invitation.accepted.success", null, Locale.getDefault()));
         } catch (IllegalStateException | IllegalArgumentException e) {
-            model.addAttribute("error", messageSource.getMessage(e.getMessage(), null, Locale.getDefault()));
+            model.addAttribute( ERROR_ATTR, messageSource.getMessage(e.getMessage(), null, Locale.getDefault()));
         }
 
         return "invitation-result";
@@ -91,7 +92,7 @@ public class ChildInvitationController {
       
             return "fragments/invitation-result :: success";
         } catch (IllegalStateException | IllegalArgumentException e) {
-            model.addAttribute("error", messageSource.getMessage(e.getMessage(), null, Locale.getDefault()));
+            model.addAttribute( ERROR_ATTR, messageSource.getMessage(e.getMessage(), null, Locale.getDefault()));
             return "fragments/invitation-result :: error";
         }
     }

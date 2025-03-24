@@ -12,12 +12,12 @@
     <meta name="robots" content="index, follow">
     
     <!-- PWA Support -->
-    <link rel="manifest" th:href="@{/manifest.json}">
+   <!-- <link rel="manifest" th:href="@{/manifest.json}">
     <link rel="apple-touch-icon" th:href="@{/icons/icon-192.png}">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Discipliner">
-    
+    -->
     <title layout:title-pattern="$CONTENT_TITLE - $LAYOUT_TITLE" th:text="#{app.title}">Discipline App</title>
     
     <!-- Common CSS -->
@@ -28,6 +28,7 @@
     <script th:src="@{/webjars/alpinejs/dist/cdn.min.js}" defer></script>
     
     <!-- Service Worker Registration -->
+     <!--
     <script>
         // Variable pour stocker l'événement d'installation
         let deferredPrompt;
@@ -84,6 +85,8 @@
             console.log(message);
         }
     </script>
+
+-->
     
   
 
