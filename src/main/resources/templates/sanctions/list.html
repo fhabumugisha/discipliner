@@ -7,9 +7,78 @@
 <head>
     <title th:text="#{sanctions.title}">Sanctions</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        /* Custom hover styles that only apply to devices that support hover */
+        @media (hover: hover) {
+            .sanction-button:hover {
+                background-color: rgba(254, 226, 226, 1); /* bg-red-100 */
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); /* shadow-md */
+                transform: scale(1.05);
+                border-color: rgba(252, 165, 165, 1); /* border-red-300 */
+            }
+            
+            .dark .sanction-button:hover {
+                background-color: rgba(153, 27, 27, 0.7); /* dark:bg-red-800/70 */
+                border-color: rgba(185, 28, 28, 1); /* dark:border-red-700 */
+            }
+            
+            .sanction-indicator {
+                opacity: 0;
+            }
+            
+            .sanction-button:hover .sanction-indicator {
+                opacity: 1;
+            }
+        }
+        
+        /* Improve mobile button interaction */
+        .sanction-button {
+            -webkit-tap-highlight-color: rgba(252, 165, 165, 0.3); /* Light red tap highlight */
+            -webkit-touch-callout: none; /* Prevent callout to copy image, etc when tap to hold */
+            cursor: pointer; /* Show pointer cursor even on touch devices */
+        }
+        
+        /* Ripple effect for touch interactions */
+        .ripple {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .ripple:after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 5px;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.5);
+            opacity: 0;
+            border-radius: 100%;
+            transform: scale(1, 1) translate(-50%, -50%);
+            transform-origin: 50% 50%;
+        }
+        
+        .ripple:focus:not(:active):after {
+            animation: ripple 0.6s ease-out;
+        }
+        
+        @keyframes ripple {
+            0% {
+                transform: scale(0, 0) translate(-50%, -50%);
+                opacity: 0.5;
+            }
+            100% {
+                transform: scale(30, 30) translate(-50%, -50%);
+                opacity: 0;
+            }
+        }
+    </style>
 </head>
 <body>
     <div layout:fragment="content">
+        <!-- Toast Notification (include fragment) -->
+        <div th:replace="~{fragments/notifications :: toast}"></div>
+        
         <div class="max-w-7xl mx-auto py-4 sm:py-6 px-4 sm:px-6 lg:px-8">
             <!-- Current Week Banner -->
             <div class="bg-indigo-100 dark:bg-indigo-900 rounded-lg p-4 mb-6 shadow-sm">
@@ -73,12 +142,12 @@
 
             <!-- Children Sanctions -->
             <div th:if="${not #lists.isEmpty(children)}" class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-                <div th:each="childSanction : ${childSanctions}" class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg border border-gray-200 dark:border-gray-700">
+                <div th:each="childSanction : ${childSanctions}" class="child-card bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg border border-gray-200 dark:border-gray-700">
                     <div class="px-4 py-5 sm:p-6">
                         <!-- Child header with name, age and history button -->
                         <div class="flex items-center justify-between mb-4">
                             <div>
-                                <h2 class="text-xl font-bold text-gray-900 dark:text-white" th:text="${childSanction.childName}">Child Name</h2>
+                                <h2 class="text-xl font-bold text-gray-900 dark:text-white child-name" th:text="${childSanction.childName}">Child Name</h2>
                                 <span class="text-sm text-gray-500 dark:text-gray-400" th:text="${childSanction.childAge} + ' ' + #{sanctions.years}">Age</span>
                             </div>
                             <a th:if="${!#lists.isEmpty(weeklySanctions)}"
@@ -100,22 +169,8 @@
                         </div>
                         
                         <!-- Points display -->
-                        <div th:id="'points-' + ${childSanction.childId}" class="mb-4">
-                            <!-- Points summary -->
-                            <div class="flex items-center justify-between mb-2">
-                                <h3 class="text-base font-medium text-gray-700 dark:text-gray-300" th:text="#{sanctions.current.points}">Current Points</h3>
-                                <span class="text-2xl font-bold" 
-                                      th:classappend="${childSanction.pointsColorClass}"
-                                      th:text="${childSanction.formattedPoints}">
-                                    100
-                                </span>
-                            </div>
-                            
-                            <!-- Points info -->
-                            <div class="mt-1 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-                                <span th:text="#{sanctions.start.week}">Start of week</span>
-                                <span th:text="${childSanction.formattedInitialPoints} + ' ' + #{sanctions.points}">100 points</span>
-                            </div>
+                        <div th:replace="~{sanctions/fragments/child-points :: points(childSanction=${childSanction}, rules=${rules})}">
+                            <!-- This content will be replaced by the fragment -->
                         </div>
                         
                         <!-- Sanction Buttons - Only negative points from rules -->
@@ -127,12 +182,50 @@
                                         th:attr="hx-put=@{/sanctions/{childId}/rules/{ruleCode}(childId=${childSanction.childId}, ruleCode=${rule.code})},
                                                hx-target='#points-' + ${childSanction.childId},
                                                hx-swap='outerHTML',
-                                               title=${rule.description}"
-                                        class="flex flex-col items-center justify-center p-3 rounded-lg bg-red-50 border border-red-200 
-                                              hover:bg-red-100 hover:shadow-md hover:scale-105 hover:border-red-300
-                                              dark:bg-red-900 dark:border-red-800 dark:hover:bg-red-800 dark:hover:border-red-700 
-                                              transition-all duration-200 ease-in-out">
-                                    <span class="text-lg font-bold text-red-600 dark:text-red-300" th:text="${rule.points}">-5</span>
+                                               hx-indicator='#loading-indicator',
+                                               title=${rule.description},
+                                               aria-label=${rule.description},
+                                               data-rule-code=${rule.code},
+                                               data-child-name=${childSanction.childName},
+                                               data-rule-points=${rule.points}"
+                                        class="sanction-button ripple flex flex-col items-center justify-center p-3 min-h-[54px] min-w-[54px] rounded-lg bg-red-50 border border-red-200 
+                                              transform active:scale-95 active:bg-red-100 active:shadow-inner
+                                              focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-opacity-50
+                                              touch-manipulation select-none
+                                              dark:bg-red-900/50 dark:border-red-800 dark:active:bg-red-800 
+                                              transition-all duration-150 ease-in-out"
+                                        x-data="{ pressed: false }"
+                                        @touchstart="pressed = true" 
+                                        @touchend="setTimeout(() => pressed = false, 150)"
+                                        :class="{ 'bg-red-100 shadow-inner scale-95 dark:bg-red-800': pressed }"
+                                        hx-on::after-request="
+                                          if(event.detail.successful) {
+                                            const button = event.target;
+                                            const childName = button.getAttribute('data-child-name');
+                                            const ruleCode = button.getAttribute('data-rule-code');
+                                            const points = button.getAttribute('data-rule-points');
+                                            window.dispatchEvent(new CustomEvent('notification', {
+                                              detail: {
+                                                message: `Applied sanction ${ruleCode} (${points}) to ${childName}`,
+                                                type: 'success'
+                                              }
+                                            }));
+                                          } else {
+                                            window.dispatchEvent(new CustomEvent('notification', {
+                                              detail: {
+                                                message: 'Failed to apply sanction. Please try again.',
+                                                type: 'error'
+                                              }
+                                            }));
+                                          }">
+                                    <div class="relative">
+                                        <span class="text-lg font-bold text-red-600 dark:text-red-300" th:text="${rule.points}">-5</span>
+                                        <span class="sanction-indicator absolute -top-1 -right-1 flex h-3 w-3">
+                                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75 dark:bg-red-600"></span>
+                                            <span class="relative inline-flex rounded-full h-3 w-3 bg-red-500 dark:bg-red-700"></span>
+                                        </span>
+                                    </div>
+                                   
                                 </button>
                             </div>
                         </div>

@@ -8,6 +8,9 @@
 </head>
 <body>
     <div layout:fragment="content" class="container mx-auto px-4 py-8">
+        <!-- Toast Notification (include fragment) -->
+        <div th:replace="~{fragments/notifications :: toast}"></div>
+        
         <div class="max-w-4xl mx-auto">
             <!-- Header -->
             <div class="mb-8">
@@ -31,6 +34,18 @@
                       hx-post th:attr="hx-post=@{/children/{parentId}(parentId=${parentId})}"
                       hx-target="#childrenContainer"
                       hx-swap="outerHTML"
+                      hx-on::after-request="
+                        if(event.detail.successful) {
+                          const childName = document.getElementById('name').value;
+                          window.dispatchEvent(new CustomEvent('notification', {
+                            detail: {
+                              message: 'Child ' + childName + ' was successfully added',
+                              type: 'success'
+                            }
+                          }));
+                          document.getElementById('name').value = '';
+                          document.getElementById('age').value = '';
+                        }"
                       class="space-y-4">
                     
                     <!-- Name Field -->
@@ -98,6 +113,16 @@
                       hx-put th:attr="hx-put=@{/children/{parentId}/{childId}(parentId=${parentId},childId=${childDto.id})}"
                       hx-target="#childrenContainer"
                       hx-swap="outerHTML"
+                      hx-on::after-request="
+                        if(event.detail.successful) {
+                          const childName = document.getElementById('editName').value;
+                          window.dispatchEvent(new CustomEvent('notification', {
+                            detail: {
+                              message: 'Child ' + childName + ' was successfully updated',
+                              type: 'success'
+                            }
+                          }));
+                        }"
                       class="space-y-4">
                     
                     <!-- Name Field -->

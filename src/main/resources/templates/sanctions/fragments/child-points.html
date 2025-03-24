@@ -2,20 +2,45 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
     <!-- Points Fragment -->
-    <div th:fragment="points(childSanction, rules)" th:id="'points-' + ${childSanction.childId}">
-        <!-- Error message -->
-        <div th:if="${error != null}" class="mb-3 p-2 bg-red-100 border border-red-400 text-red-700 dark:bg-red-900 dark:border-red-700 dark:text-red-300 rounded">
-            <p class="text-sm" th:text="${error}">Error message</p>
+    <div th:fragment="points(childSanction, rules)" th:id="'points-' + ${childSanction.childId}" class="p-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm relative">
+        <!-- Loading Indicator -->
+        <div id="loading-indicator" class="htmx-indicator absolute inset-0 bg-gray-50/70 dark:bg-gray-700/70 flex items-center justify-center rounded-lg z-10">
+            <svg class="animate-spin h-8 w-8 text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
         </div>
         
-        <!-- Points summary -->
+        <!-- Error message -->
+        <div th:if="${error != null}" class="mb-3 p-2.5 bg-red-100 border border-red-300 text-red-700 dark:bg-red-900 dark:border-red-700 dark:text-red-300 rounded-md">
+            <div class="flex items-center">
+                <svg class="h-5 w-5 mr-2 text-red-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                </svg>
+                <p class="text-sm" th:text="${error}">Error message</p>
+            </div>
+        </div>
+        
+        <!-- Points Summary -->
         <div class="flex items-center justify-between mb-2">
-            <h3 class="text-base font-medium text-gray-700 dark:text-gray-300" th:text="#{sanctions.current.points}">Current Points</h3>
-            <span class="text-2xl font-bold" 
-                  th:classappend="${childSanction.pointsColorClass}"
-                  th:text="${childSanction.formattedPoints}">
-                100
-            </span>
+            <div class="flex flex-col">
+                <span class="text-sm text-gray-500 dark:text-gray-400" th:text="#{sanctions.current.points}">Current points</span>
+                <span class="text-2xl font-bold"
+                      th:classappend="${childSanction.pointsColorClass}"
+                      th:text="${childSanction.currentPoints}">0</span>
+            </div>
+            <div class="text-right">
+                <span class="text-sm text-gray-500 dark:text-gray-400" th:text="#{sanctions.last.update}">Last update</span>
+                <span class="block text-sm font-medium text-gray-700 dark:text-gray-300" 
+                      th:if="${childSanction.hasSanction() && !#lists.isEmpty(childSanction.sanction.sanctions)}"
+                      th:text="${#temporals.format(childSanction.sanction.sanctions[0].appliedAt, 'dd MMM, HH:mm')}">
+                    01 Jan, 10:00
+                </span>
+                <span class="block text-sm font-medium text-gray-700 dark:text-gray-300" 
+                      th:unless="${childSanction.hasSanction() && !#lists.isEmpty(childSanction.sanction.sanctions)}">
+                    —
+                </span>
+            </div>
         </div>
         
         <!-- Points info -->
@@ -23,12 +48,33 @@
             <span th:text="#{sanctions.start.week}">Start of week</span>
             <span th:text="${childSanction.formattedInitialPoints} + ' ' + #{sanctions.points}">100 points</span>
         </div>
-        
-        <!-- Last update information -->
-        <div class="mt-3 text-xs text-gray-500 dark:text-gray-400" th:if="${childSanction.hasSanction && !#lists.isEmpty(childSanction.sanction.sanctions) && childSanction.sanction.sanctions[0].appliedAt != null}">
-            <span th:text="#{sanctions.last.updated}">Last updated:</span>
-            <span th:text="${#temporals.format(childSanction.sanction.sanctions[0].appliedAt, 'dd MMM, HH:mm')}">Jan 1, 10:30</span>
-        </div>
     </div>
+
+    <script>
+        // After points are updated, dispatch a notification
+        document.addEventListener('htmx:afterSwap', function(event) {
+            if (event.target.id && event.target.id.startsWith('points-')) {
+                // Find the closest parent with class 'child-card' or fallback to the main card container
+                const cardElement = event.target.closest('.child-card') || event.target.closest('[class*="bg-white"]');
+                
+                // Get child name either from a designated element or from the header in the parent card
+                const childNameElement = cardElement?.querySelector('.child-name') || cardElement?.querySelector('h2');
+                const childName = childNameElement?.textContent?.trim() || 'Child';
+                
+                const pointsElement = event.target.querySelector('.text-2xl.font-bold');
+                const points = pointsElement ? pointsElement.textContent.trim() : '0';
+                
+                // Note: No need to manually refresh styles after swap as Thymeleaf will
+                // apply the correct class from the DTO's getPointsColorClass method
+                
+                window.dispatchEvent(new CustomEvent('notification', {
+                    detail: {
+                        message: `Updated ${childName}'s points to ${points}`,
+                        type: 'success'
+                    }
+                }));
+            }
+        });
+    </script>
 </body>
 </html> 

@@ -9,6 +9,9 @@
 </head>
 <body>
     <div layout:fragment="content">
+        <!-- Toast Notification (include fragment) -->
+        <div th:replace="~{fragments/notifications :: toast}"></div>
+        
         <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
             <div class="px-4 py-6 sm:px-0">
                 <!-- Page Header -->

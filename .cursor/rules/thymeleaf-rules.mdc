@@ -33,6 +33,7 @@ alwaysApply: true
 - Internationalize all messages. Use text from messages.properties , messages_en.properties and messages_fr.properties
 - Keep consistance of html elements like header, buttons alignment form fields styling
 -  Use Thymeleaf's URL building mechanism for href URLs
+- use property notation instead of getter methods in thymeleaf templates
 
 ## Tailwind CSS 4 Rules
 - Use Tailwind's **utility classes** instead of writing custom CSS.
