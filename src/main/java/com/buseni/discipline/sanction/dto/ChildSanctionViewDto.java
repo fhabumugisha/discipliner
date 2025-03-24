@@ -72,21 +72,13 @@ public record ChildSanctionViewDto(ChildDto child, WeeklySanctionDto sanction) {
         // Calculate percentage of points remaining
         double percentRemaining = (double) points / initialPoints * 100;
         
-        // Rule-based classification
-        if (percentRemaining >= 90) {
-            return "text-green-600 dark:text-green-400"; // Excellent (90-100%)
-        } else if (percentRemaining >= 70) {
-            return "text-emerald-600 dark:text-emerald-400"; // Very Good (70-90%)
+        // Simplified color scheme with 3 colors and better contrast
+        if (percentRemaining > 70) {
+            return "text-green-600 dark:text-green-400"; // Good (above 70%)
         } else if (percentRemaining >= 50) {
-            return "text-yellow-600 dark:text-yellow-400"; // Moderate (50-70%)
-        } else if (percentRemaining >= 30) {
-            return "text-amber-600 dark:text-amber-400"; // Concerning (30-50%)
-        } else if (percentRemaining >= 10) {
-            return "text-orange-600 dark:text-orange-400"; // Poor (10-30%)
-        } else if (points >= 0) {
-            return "text-red-600 dark:text-red-400"; // Very poor but still positive (0-10%)
+            return "text-yellow-500 dark:text-yellow-400"; // Warning (50-70%) - Bright yellow-orange
         } else {
-            return "text-red-800 dark:text-red-200"; // Negative points, most severe
+            return "text-red-700 dark:text-red-500"; // Poor (below 50%) - Deeper red
         }
     }
     
@@ -105,21 +97,13 @@ public record ChildSanctionViewDto(ChildDto child, WeeklySanctionDto sanction) {
         // Calculate percentage of points remaining
         double percentRemaining = (double) points / initialPoints * 100;
         
-        // Rule-based classification
-        if (percentRemaining >= 90) {
-            return "bg-green-500"; // Excellent (90-100%)
-        } else if (percentRemaining >= 70) {
-            return "bg-emerald-500"; // Very Good (70-90%)
+        // Simplified color scheme with 3 colors and better contrast
+        if (percentRemaining > 70) {
+            return "bg-green-500"; // Good (above 70%)
         } else if (percentRemaining >= 50) {
-            return "bg-yellow-500"; // Moderate (50-70%)
-        } else if (percentRemaining >= 30) {
-            return "bg-amber-500"; // Concerning (30-50%)
-        } else if (percentRemaining >= 10) {
-            return "bg-orange-500"; // Poor (10-30%)
-        } else if (points >= 0) {
-            return "bg-red-500"; // Very poor but still positive (0-10%)
+            return "bg-yellow-500"; // Warning (50-70%) - Bright yellow-orange
         } else {
-            return "bg-red-700"; // Negative points, most severe
+            return "bg-red-700"; // Poor (below 50%) - Deeper red
         }
     }
 } 
