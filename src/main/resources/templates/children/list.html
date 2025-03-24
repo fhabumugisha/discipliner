@@ -122,6 +122,9 @@
                               type: 'success'
                             }
                           }));
+                          // Reset form after successful update
+                          const form = document.getElementById('childForm');
+                          form.innerHTML = document.getElementById('addFormTemplate').innerHTML;
                         }"
                       class="space-y-4">
                     
@@ -174,10 +177,8 @@
                                        bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500
                                        dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600
                                        transition-colors duration-200"
-                                hx-get th:attr="hx-get=@{/children}"
-                                hx-target="#childForm"
-                                hx-swap="outerHTML">
-                            Cancel
+                                onclick="document.getElementById('childForm').innerHTML = document.getElementById('addFormTemplate').innerHTML;">
+                            <span th:text="#{buttons.cancel}">Cancel</span>
                         </button>
                         <button type="submit"
                                 class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white 
@@ -191,6 +192,54 @@
                         </button>
                     </div>
                 </form>
+
+                <!-- Template for Add Form - Used for resetting the form -->
+                <template id="addFormTemplate">
+                    <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4" th:text="#{children.add.title}">Add a Child</h2>
+                    <form th:action="@{/children/{parentId}(parentId=${parentId})}"
+                          th:method="POST"
+                          th:object="${childDto}"
+                          hx-post th:attr="hx-post=@{/children/{parentId}(parentId=${parentId})}"
+                          hx-target="#childrenContainer"
+                          hx-swap="outerHTML"
+                          class="space-y-4">
+                        <!-- Copy the add form fields here -->
+                        <div>
+                            <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300" th:text="#{children.form.name}">Name</label>
+                            <input type="text" 
+                                   id="name" 
+                                   name="name"
+                                   class="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 
+                                          focus:outline-none focus:ring-blue-500 focus:border-blue-500 
+                                          dark:bg-gray-700 dark:text-white sm:text-sm"
+                                   th:placeholder="#{children.form.name.placeholder}"
+                                   required>
+                        </div>
+                        <div>
+                            <label for="age" class="block text-sm font-medium text-gray-700 dark:text-gray-300" th:text="#{children.form.age}">Age</label>
+                            <input type="number" 
+                                   id="age" 
+                                   name="age"
+                                   class="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 
+                                          focus:outline-none focus:ring-blue-500 focus:border-blue-500 
+                                          dark:bg-gray-700 dark:text-white sm:text-sm"
+                                   min="0"
+                                   required>
+                        </div>
+                        <div class="flex justify-end">
+                            <button type="submit"
+                                    class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white 
+                                           bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500
+                                           dark:bg-blue-500 dark:hover:bg-blue-600 dark:focus:ring-offset-gray-800
+                                           transition-colors duration-200">
+                                <svg class="mr-2 -ml-1 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
+                                </svg>
+                                <span th:text="#{children.form.submit}">Add Child</span>
+                            </button>
+                        </div>
+                    </form>
+                </template>
             </div>
 
             <!-- Children List -->
