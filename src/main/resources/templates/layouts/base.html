@@ -7,9 +7,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Discipline App - Help manage and track children's discipline">
-    <meta name="theme-color" content="#ffffff">
+    <meta name="theme-color" content="#4f46e5">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="robots" content="index, follow">
+    
+    <!-- PWA Support -->
+    <link rel="manifest" th:href="@{/manifest.json}">
+    <link rel="apple-touch-icon" th:href="@{/icons/icon-192.png}">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Discipliner">
+    
     <title layout:title-pattern="$CONTENT_TITLE - $LAYOUT_TITLE" th:text="#{app.title}">Discipline App</title>
     
     <!-- Common CSS -->
@@ -19,11 +27,71 @@
     <script th:src="@{/webjars/htmx.org/dist/htmx.min.js}"></script>
     <script th:src="@{/webjars/alpinejs/dist/cdn.min.js}" defer></script>
     
+    <!-- Service Worker Registration -->
+    <script>
+        // Variable pour stocker l'événement d'installation
+        let deferredPrompt;
+        
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then(registration => {
+                        console.log('Service Worker registered successfully:', registration.scope);
+                        // Mettre à jour le statut
+                        updatePWAStatus('Service Worker registered successfully');
+                    })
+                    .catch(error => {
+                        console.error('Service Worker registration failed:', error);
+                        updatePWAStatus('Service Worker registration failed: ' + error);
+                    });
+            });
+        }
+
+        // Écouter l'événement beforeinstallprompt
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // Empêcher Chrome de montrer automatiquement l'invite d'installation
+            e.preventDefault();
+            // Stocker l'événement pour une utilisation ultérieure
+            deferredPrompt = e;
+            // Mettre à jour l'interface utilisateur pour montrer le bouton d'installation
+            document.getElementById('installButton').style.display = 'block';
+        });
+
+        // Fonction pour installer la PWA
+        function installPWA() {
+            if (deferredPrompt) {
+                // Montrer l'invite d'installation
+                deferredPrompt.prompt();
+                // Attendre la réponse de l'utilisateur
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('User accepted the install prompt');
+                        updatePWAStatus('Application installed successfully');
+                    } else {
+                        console.log('User dismissed the install prompt');
+                        updatePWAStatus('Installation was cancelled');
+                    }
+                    // On ne peut utiliser l'invite qu'une seule fois
+                    deferredPrompt = null;
+                    // Cacher le bouton d'installation
+                    document.getElementById('installButton').style.display = 'none';
+                });
+            }
+        }
+
+        // Fonction pour mettre à jour le statut
+        function updatePWAStatus(message) {
+            console.log(message);
+        }
+    </script>
+    
     <!-- Page specific resources -->
     <th:block layout:fragment="css"></th:block>
     <th:block layout:fragment="script"></th:block>
 </head>
 <body class="bg-gray-50 dark:bg-gray-900 min-h-screen flex flex-col">
+   
+
     <!-- Header -->
     <header th:replace="~{fragments/header :: header}">Header</header>
 
