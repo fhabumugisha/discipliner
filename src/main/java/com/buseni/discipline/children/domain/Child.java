@@ -1,6 +1,8 @@
 package com.buseni.discipline.children.domain;
 
 import java.time.Instant;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.data.annotation.CreatedBy;
@@ -40,6 +42,10 @@ public class Child {
     @Indexed
     @Field("parent_id")
     private String parentId;
+
+    @Field("parent_ids")
+    @Builder.Default
+    private Set<String> parentIds = new HashSet<>();
 
     @CreatedDate
     @Field("created_at")

@@ -1,0 +1,382 @@
+# Guide d'Implémentation PWA pour Spring Boot + Thymeleaf + HTMX + Alpine.js
+
+## Prérequis
+- Application Spring Boot 3.x
+- Thymeleaf comme moteur de template
+- HTMX et Alpine.js via WebJars
+- Java 17+
+
+## 1. Structure des Dossiers
+Créez les dossiers suivants dans votre projet :
+
+```bash
+mkdir -p src/main/resources/static/icons
+mkdir -p src/main/resources/messages
+```
+
+## 2. Configuration Maven
+Ajoutez ces dépendances si elles ne sont pas déjà présentes :
+
+```xml
+<dependencies>
+    <!-- WebJars pour les dépendances frontend -->
+    <dependency>
+        <groupId>org.webjars</groupId>
+        <artifactId>webjars-locator-core</artifactId>
+        <version>0.59</version>
+    </dependency>
+    
+    <!-- Spring Security pour la configuration des ressources statiques -->
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-security</artifactId>
+    </dependency>
+</dependencies>
+```
+
+## 3. Fichiers de Configuration
+
+### 3.1 WebConfig.java
+```java
+package com.yourpackage.config;
+
+import org.springframework.context.annotation.Configuration;
+import org.springframework.http.MediaType;
+import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+@Configuration
+public class WebConfig implements WebMvcConfigurer {
+
+    @Override
+    public void configureContentNegotiation(ContentNegotiationConfigurer configurer) {
+        configurer
+            .mediaType("json", MediaType.APPLICATION_JSON)
+            .mediaType("webmanifest", MediaType.APPLICATION_JSON);
+    }
+
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        registry.addResourceHandler("/service-worker.js")
+            .addResourceLocations("classpath:/static/")
+            .setCacheControl(CacheControl.noCache());
+            
+        registry.addResourceHandler("/manifest.json")
+            .addResourceLocations("classpath:/static/")
+            .setCacheControl(CacheControl.maxAge(30, TimeUnit.DAYS));
+            
+        registry.addResourceHandler("/icons/**")
+            .addResourceLocations("classpath:/static/icons/")
+            .setCacheControl(CacheControl.maxAge(30, TimeUnit.DAYS));
+    }
+}
+```
+
+### 3.2 SecurityConfig.java
+```java
+package com.yourpackage.config;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.web.SecurityFilterChain;
+
+@Configuration
+@EnableWebSecurity
+public class SecurityConfig {
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers(
+                    "/manifest.json",
+                    "/service-worker.js",
+                    "/icons/**"
+                ).permitAll()
+                // ... vos autres configurations de sécurité
+            );
+        return http.build();
+    }
+}
+```
+
+## 4. Fichiers PWA
+
+### 4.1 manifest.json
+```json
+{
+  "name": "Your App Name",
+  "short_name": "App",
+  "description": "Your app description",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#4f46e5",
+  "icons": [
+    {
+      "src": "/icons/icon-192-light.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-192-dark.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512-light.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512-dark.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
+```
+
+### 4.2 service-worker.js
+```javascript
+const CACHE_NAME = 'app-cache-v1';
+const ASSETS_TO_CACHE = [
+    '/',
+    '/manifest.json',
+    '/css/styles.css',
+    '/webjars/htmx.org/dist/htmx.min.js',
+    '/webjars/alpinejs/dist/cdn.min.js',
+    '/icons/icon-192-light.svg',
+    '/icons/icon-192-dark.svg',
+    '/icons/icon-512-light.svg',
+    '/icons/icon-512-dark.svg'
+];
+
+// Installation du Service Worker
+self.addEventListener('install', (event) => {
+    event.waitUntil(
+        caches.open(CACHE_NAME)
+            .then((cache) => {
+                return Promise.allSettled(
+                    ASSETS_TO_CACHE.map(url => 
+                        cache.add(url).catch(error => {
+                            console.error(`Failed to cache ${url}:`, error);
+                            return Promise.resolve();
+                        })
+                    )
+                );
+            })
+    );
+});
+
+// Activation et nettoyage des anciens caches
+self.addEventListener('activate', (event) => {
+    event.waitUntil(
+        caches.keys().then((cacheNames) => {
+            return Promise.all(
+                cacheNames.map((cacheName) => {
+                    if (cacheName !== CACHE_NAME) {
+                        return caches.delete(cacheName);
+                    }
+                })
+            );
+        })
+    );
+});
+
+// Stratégie de cache : Network First avec fallback sur le cache
+self.addEventListener('fetch', (event) => {
+    event.respondWith(
+        fetch(event.request)
+            .catch(() => {
+                return caches.match(event.request);
+            })
+    );
+});
+```
+
+### 4.3 Icônes SVG
+#### icon-192-light.svg
+```svg
+<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192">
+    <style>
+        @media (prefers-color-scheme: dark) {
+            rect { fill: #4f46e5; }
+            text { fill: #ffffff; }
+        }
+    </style>
+    <rect width="192" height="192" fill="#4f46e5" rx="48"/>
+    <text x="96" y="120" font-family="Arial, sans-serif" font-size="100" 
+          font-weight="bold" fill="white" text-anchor="middle">A</text>
+</svg>
+```
+
+#### icon-192-dark.svg
+```svg
+<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192">
+    <rect width="192" height="192" fill="#ffffff" rx="48"/>
+    <text x="96" y="120" font-family="Arial, sans-serif" font-size="100" 
+          font-weight="bold" fill="#4f46e5" text-anchor="middle">A</text>
+</svg>
+```
+
+(Créez les mêmes fichiers pour 512x512 en ajustant les dimensions)
+
+## 5. Messages Internationalisés
+
+### 5.1 messages.properties
+```properties
+pwa.install.button=Install App
+pwa.install.success=Application installed successfully
+pwa.install.cancelled=Installation was cancelled
+pwa.service.worker.success=Service Worker registered successfully
+pwa.service.worker.error=Service Worker registration failed
+```
+
+### 5.2 messages_fr.properties
+```properties
+pwa.install.button=Installer l'application
+pwa.install.success=Application installée avec succès
+pwa.install.cancelled=Installation annulée
+pwa.service.worker.success=Service Worker enregistré avec succès
+pwa.service.worker.error=Échec de l'enregistrement du Service Worker
+```
+
+## 6. Intégration dans le Layout Thymeleaf
+
+Modifiez votre fichier base.html :
+
+```html
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      lang="${#locale.language}">
+<head>
+    <!-- Métadonnées PWA -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#4f46e5">
+    <link rel="manifest" th:href="@{/manifest.json}">
+    <link rel="apple-touch-icon" th:href="@{/icons/icon-192-light.svg}">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    
+    <!-- Script d'installation PWA -->
+    <script th:inline="javascript">
+        let deferredPrompt;
+        const messages = {
+            installSuccess: /*[[#{pwa.install.success}]]*/ 'Application installed',
+            installCancelled: /*[[#{pwa.install.cancelled}]]*/ 'Installation cancelled',
+            serviceWorkerSuccess: /*[[#{pwa.service.worker.success}]]*/ 'Service Worker registered',
+            serviceWorkerError: /*[[#{pwa.service.worker.error}]]*/ 'Service Worker failed'
+        };
+
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then(registration => {
+                        console.log(messages.serviceWorkerSuccess);
+                        updatePWAStatus(messages.serviceWorkerSuccess);
+                    })
+                    .catch(error => {
+                        console.error(messages.serviceWorkerError, error);
+                        updatePWAStatus(`${messages.serviceWorkerError}: ${error}`);
+                    });
+            });
+        }
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            document.getElementById('installButton').style.display = 'block';
+        });
+
+        function installPWA() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        updatePWAStatus(messages.installSuccess);
+                    } else {
+                        updatePWAStatus(messages.installCancelled);
+                    }
+                    deferredPrompt = null;
+                    document.getElementById('installButton').style.display = 'none';
+                });
+            }
+        }
+
+        function updatePWAStatus(message) {
+            const statusElement = document.getElementById('pwaStatus');
+            if (statusElement) {
+                statusElement.textContent = message;
+            }
+        }
+    </script>
+</head>
+<body>
+    <!-- Bouton d'installation PWA -->
+    <div class="fixed bottom-4 right-4 z-50">
+        <button id="installButton" 
+                onclick="installPWA()" 
+                style="display: none"
+                class="bg-blue-600 dark:bg-blue-500 text-white px-4 py-2 rounded-lg 
+                       shadow-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
+                th:text="#{pwa.install.button}">
+            Install App
+        </button>
+        <div id="pwaStatus" 
+             class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+        </div>
+    </div>
+    
+    <!-- Reste du contenu -->
+</body>
+</html>
+```
+
+## 7. Test et Débogage
+
+1. **Vérification du Service Worker** :
+   - Ouvrez Chrome DevTools (F12)
+   - Allez dans l'onglet "Application"
+   - Vérifiez la section "Service Workers"
+
+2. **Validation du Manifest** :
+   - Dans l'onglet "Application"
+   - Vérifiez la section "Manifest"
+   - Tous les champs doivent être correctement remplis
+
+3. **Test du Mode Hors Ligne** :
+   - Dans DevTools > Application > Service Workers
+   - Cochez "Offline"
+   - Rafraîchissez la page
+
+4. **Test de l'Installation** :
+   - Vérifiez que le bouton d'installation apparaît
+   - Testez l'installation
+   - Vérifiez les messages de statut
+
+## 8. Résolution des Problèmes Courants
+
+1. **Manifest non chargé** :
+   - Vérifiez le type MIME dans WebConfig
+   - Vérifiez l'URL dans le navigateur
+
+2. **Service Worker non enregistré** :
+   - Vérifiez les permissions dans SecurityConfig
+   - Vérifiez la console pour les erreurs
+
+3. **Icônes non chargées** :
+   - Vérifiez les chemins dans manifest.json
+   - Vérifiez les permissions des fichiers
+
+4. **Cache non fonctionnel** :
+   - Vérifiez les URLs dans ASSETS_TO_CACHE
+   - Vérifiez les stratégies de cache

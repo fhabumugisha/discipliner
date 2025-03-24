@@ -64,4 +64,12 @@ public class ChildServiceImpl implements ChildService {
             child.getPoints()
         );
     }
+
+    @Override
+    public Child getChild(String childId) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getChild'");
+    }
+
+   
 } 
