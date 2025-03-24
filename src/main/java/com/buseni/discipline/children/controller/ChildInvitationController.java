@@ -14,8 +14,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import com.buseni.discipline.children.dto.ChildInvitationRequest;
 import com.buseni.discipline.children.service.ChildInvitationService;
 import com.buseni.discipline.children.service.ChildService;
-
-import io.github.wimdeblauwe.htmx.spring.boot.mvc.HtmxResponse;
 import io.github.wimdeblauwe.htmx.spring.boot.mvc.HxRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

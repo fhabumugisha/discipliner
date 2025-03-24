@@ -65,11 +65,12 @@ public class ChildServiceImpl implements ChildService {
         );
     }
 
-    @Override
-    public Child getChild(String childId) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getChild'");
-    }
+ 
 
-   
+    @Override
+    public void deleteChild(String childId) {
+        childRepository.deleteById(childId);
+    }
+ 
+
 } 

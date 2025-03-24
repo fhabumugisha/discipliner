@@ -21,7 +21,7 @@ spring:
           auth: true
           starttls:
             enable: true
-
+        from: ${MAIL_FROM}
 server:
   port: 8080
   error:

@@ -44,6 +44,8 @@ public class User implements UserDetails {
     
     @LastModifiedDate
     private LocalDateTime updatedAt;
+
+    private String phone;
     
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

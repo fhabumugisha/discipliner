@@ -9,4 +9,6 @@ import com.buseni.discipline.users.domain.User;
 public interface UserRepository extends MongoRepository<User, String> {
     Optional<User> findByEmail(String email);
     boolean existsByEmail(String email);
+    Optional<User> findByPhone(String phone);
+    boolean existsByPhone(String phone);
 } 

@@ -1,7 +1,10 @@
 package com.buseni.discipline.children.service;
 
-import com.buseni.discipline.children.domain.ChildInvitation;
+import java.util.List;
+
+import com.buseni.discipline.children.dto.ChildInvitationDto;
 import com.buseni.discipline.children.dto.ChildInvitationRequest;
+import com.buseni.discipline.children.dto.ChildPendingInvitationDto;
 
 public interface ChildInvitationService {
     /**
@@ -9,14 +12,14 @@ public interface ChildInvitationService {
      * @param request the request containing the invitation details
      * @return the created child invitation
      */
-    ChildInvitation createInvitation(ChildInvitationRequest request);
+    void createInvitation(ChildInvitationRequest request);
     
     /**
      * Accept a child invitation
      * @param token the token used to accept the invitation
      * @return the accepted child invitation
      */
-    ChildInvitation acceptInvitation(String token);
+    void acceptInvitation(String token);
     /**
      * 
      * @param invitationId
@@ -26,4 +29,22 @@ public interface ChildInvitationService {
      * Clean up expired invitations
      */
     void cleanupExpiredInvitations();
+    /**
+     * Get pending invitations for a child
+     * @param childId the id of the parent
+     * @return the pending invitations
+     */
+    List<ChildPendingInvitationDto> getPendingInvitations(String parentId);
+
+    /**
+     * Accept a child invitation
+     * @param invitationId the id of the invitation
+     */
+    void acceptInvitationById(String invitationId);
+
+    /**
+     * Revoke a child invitation
+     * @param invitationId the id of the invitation
+     */
+    void revokeInvitationById(String invitationId);
 } 

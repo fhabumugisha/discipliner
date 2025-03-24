@@ -6,6 +6,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import com.buseni.discipline.users.dto.RegisterRequest;
 import com.buseni.discipline.users.dto.UserDto;
@@ -13,12 +14,15 @@ import com.buseni.discipline.users.service.AuthService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Controller
 @RequiredArgsConstructor
 public class AuthController {
 
     private final AuthService authService;
+    private static final String AUTH_REGISTER_PAGE = "auth/register";
 
     @GetMapping("/login")
     public String loginPage() {
@@ -26,9 +30,12 @@ public class AuthController {
     }
 
     @GetMapping("/register")
-    public String registerPage(Model model) {
-        model.addAttribute("registerRequest", new RegisterRequest("", "", "", ""));
-        return "auth/register";
+    public String registerPage(@RequestParam(required = false) String email,
+                             @RequestParam(required = false) String phone,
+                             Model model) {
+        log.debug("Register page with email: {} and phone: {}", email, phone);
+        model.addAttribute("registerRequest", new RegisterRequest("", "", email, phone, ""));
+        return AUTH_REGISTER_PAGE;
     }
 
     @PostMapping("/register")
@@ -38,7 +45,7 @@ public class AuthController {
             Model model) {
         
         if (result.hasErrors()) {
-            return "auth/register";
+            return AUTH_REGISTER_PAGE;
         }
 
         try {
@@ -46,7 +53,7 @@ public class AuthController {
             return "redirect:/login?registered";
         } catch (IllegalArgumentException e) {
             model.addAttribute("error", e.getMessage());
-            return "auth/register";
+            return AUTH_REGISTER_PAGE;
         }
     }
 

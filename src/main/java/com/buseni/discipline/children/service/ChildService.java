@@ -44,5 +44,7 @@ public interface ChildService {
      */
     ChildDto updateChild(String childId, ChildDto childDto);
 
-    Child getChild(String childId);
+
+
+    void deleteChild(String childId);
 } 

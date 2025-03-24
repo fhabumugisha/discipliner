@@ -47,7 +47,7 @@ public class NotificationService {
             Ce lien expirera dans 24 heures.
             
             Cordialement,
-            L'équipe Discipline
+            L'équipe Discipliner
             """,
             baseUrl,
             invitation.getToken()

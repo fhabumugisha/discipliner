@@ -5,7 +5,6 @@ import java.util.UUID;
 
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
@@ -26,6 +25,9 @@ public class ChildInvitation {
 
     @Field("child_id")
     private String childId;
+
+    @Field("child_name")
+    private String childName;
 
     @Field("inviter_id")
     private String inviterId;

@@ -367,6 +367,58 @@
                         </li>
                     </ul>
                 </div>
+
+                <!-- Bloc des invitations recues en cours -->
+                <div th:if="${not #lists.isEmpty(pendingInvitations)}" class="mt-6">
+                    <div class="bg-white dark:bg-gray-800 shadow rounded-lg">
+                        <div class="px-4 py-5 sm:p-6">
+                            <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-white" th:text="#{children.invitations.pending.title}">
+                                Invitations en cours
+                            </h3>
+                            <div class="mt-4">
+                                <div class="flow-root">
+                                    <ul role="list" class="-my-5 divide-y divide-gray-200 dark:divide-gray-700">
+                                        <li th:each="invitation : ${pendingInvitations}" class="py-4">
+                                            <div class="flex items-center space-x-4">
+                                                <div class="flex-1 min-w-0">
+                                                    
+                                                    <p class="text-sm text-gray-500 dark:text-gray-400">
+                                                        <span th:text="#{children.invitations.pending.for}">Pour</span>
+                                                        <span th:text="${invitation.childName}" class="font-medium"></span>
+                                                    </p>
+                                                    <p class="text-xs text-gray-500 dark:text-gray-400">
+                                                        <span th:text="#{children.invitations.pending.expires}">Expire le</span>
+                                                        <time th:text="${#temporals.format(invitation.expiresAt, 'dd/MM/yyyy HH:mm')}"></time>
+                                                    </p>
+                                                </div>
+                                                <div class="flex items-center space-x-2">
+                                                    <!-- Bouton pour accepter l'invitation -->
+                                                    <button type="button"
+                                                            hx-post th:attr="hx-post=@{/children/{parentId}/invitations/{invitationId}/accept(parentId=${parentId},invitationId=${invitation.id})}"
+                                                            hx-target="closest li"
+                                                            hx-swap="outerHTML swap:1s"
+                                                            class="inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded text-green-700 bg-green-100 hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 dark:bg-green-900 dark:text-green-100 dark:hover:bg-green-800"
+                                                            th:text="#{invitations.pending.accept}">
+                                                        Accepter
+                                                    </button>
+                                                    <!-- Bouton pour refuser l'invitation -->
+                                                    <button type="button"
+                                                            hx-post th:attr="hx-post=@{/children/{parentId}/invitations/{invitationId}/revoke(parentId=${parentId},invitationId=${invitation.id})}"
+                                                            hx-target="closest li"
+                                                            hx-swap="outerHTML swap:1s"
+                                                            class="inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 dark:bg-red-900 dark:text-red-100 dark:hover:bg-red-800"
+                                                            th:text="#{invitations.pending.revoke}">
+                                                        Refuser
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

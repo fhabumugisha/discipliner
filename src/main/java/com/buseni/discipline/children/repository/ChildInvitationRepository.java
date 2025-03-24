@@ -20,4 +20,7 @@ public interface ChildInvitationRepository extends MongoRepository<ChildInvitati
     List<ChildInvitation> findByInviteePhoneAndStatus(String phone, InvitationStatus status);
     
     List<ChildInvitation> findByExpiresAtBeforeAndStatus(Instant now, InvitationStatus status);
+
+    List<ChildInvitation> findByInviteePhoneOrInviteeEmailAndStatus(String phone, String email,
+            InvitationStatus status);
 } 
