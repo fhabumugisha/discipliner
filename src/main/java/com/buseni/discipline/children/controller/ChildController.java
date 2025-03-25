@@ -132,7 +132,8 @@ public class ChildController {
         model.addAttribute(PARENT_ID_MODEL_ATTRIBUTE, parentId);
         
         // Add a success message
-        model.addAttribute(SUCCESS_MESSAGE_ATTRIBUTE, messageSource.getMessage("children.invitations.accepted.success", null, Locale.getDefault()) );
+        String successMessage = messageSource.getMessage("children.invitations.accepted.success", null, "Invitation accepted successfully", Locale.getDefault());
+        model.addAttribute(SUCCESS_MESSAGE_ATTRIBUTE, successMessage);
         
         return CHILDREN_LIST_FRAGMENT_CHILDREN_CONTAINER;
     }
@@ -151,7 +152,8 @@ public class ChildController {
         model.addAttribute(PARENT_ID_MODEL_ATTRIBUTE, parentId);
         
         // Add a success message
-        model.addAttribute(SUCCESS_MESSAGE_ATTRIBUTE,  messageSource.getMessage("children.invitations.revoked.success", null, Locale.getDefault())  );
+        String successMessage = messageSource.getMessage("children.invitations.revoked.success", null, "Invitation revoked successfully", Locale.getDefault());
+        model.addAttribute(SUCCESS_MESSAGE_ATTRIBUTE, successMessage);
         
         return CHILDREN_LIST_FRAGMENT_CHILDREN_CONTAINER;
     }

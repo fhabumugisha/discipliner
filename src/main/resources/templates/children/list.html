@@ -284,7 +284,7 @@
                                 </button>
                                 <div x-data="{ shareModal: false, currentChildId: null }">
                                     <button type="button"
-                                            @click="shareModal = true; currentChildId = $el.dataset.childId"
+                                            @click="currentChildId = $el.dataset.childId; shareModal = true"
                                             th:data-child-id="${child.id}"
                                             class="inline-flex items-center px-3 py-2 text-sm font-medium rounded-md text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
@@ -356,21 +356,25 @@
                                                     <!-- Invitation Form -->
                                                     <div id="invitation-form"
                                                          class="mt-4"
+                                                         th:hx-get="@{/children/invitations/form}"
+                                                         th:hx-vals="*{childId: '__${child.id}__'}"
+                                                         hx-trigger="none"
+                                                         hx-target="#invitation-form"
+                                                         hx-swap="innerHTML"
+                                                         hx-on::after-request="
+                                                            if(event.detail.successful && event.detail.xhr.status === 200) {
+                                                                const responseText = event.detail.xhr.responseText;
+                                                                if(responseText.includes('success')) {
+                                                                    shareModal = false;
+                                                                }
+                                                            }"
                                                          x-init="$nextTick(() => {
-                                                             if (shareModal) {
-                                                                 htmx.ajax('GET', `/children/invitations/form?childId=${currentChildId}`, {
-                                                                     target: '#invitation-form',
-                                                                     swap: 'innerHTML',
-                                                                     indicator: '#loading-indicator'
-                                                                 });
+                                                             if (shareModal && currentChildId) {
+                                                                 htmx.trigger('#invitation-form', 'load');
                                                              }
                                                          })"
-                                                         x-effect="if (shareModal) {
-                                                             htmx.ajax('GET', `/children/invitations/form?childId=${currentChildId}`, {
-                                                                 target: '#invitation-form',
-                                                                 swap: 'innerHTML',
-                                                                 indicator: '#loading-indicator'
-                                                             });
+                                                         x-effect="if (shareModal && currentChildId) {
+                                                             htmx.trigger('#invitation-form', 'load');
                                                          }">
                                                         <!-- Loading indicator -->
                                                         <div id="loading-indicator" class="flex justify-center py-6">
