@@ -182,7 +182,7 @@
                                         th:attr="hx-put=@{/sanctions/{childId}/rules/{ruleCode}(childId=${childSanction.childId}, ruleCode=${rule.code})},
                                                hx-target='#points-' + ${childSanction.childId},
                                                hx-swap='outerHTML',
-                                               hx-indicator='#loading-indicator',
+                                               hx-indicator='#loading-indicator-' + ${childSanction.childId},
                                                title=${rule.description},
                                                aria-label=${rule.description},
                                                data-rule-code=${rule.code},

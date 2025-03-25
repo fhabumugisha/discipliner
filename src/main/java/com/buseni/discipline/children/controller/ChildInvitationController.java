@@ -54,6 +54,7 @@ public class ChildInvitationController {
         log.debug("Creating invitation for child: {}", request.childId());
         
         if (bindingResult.hasErrors()) {
+            model.addAttribute("invitationRequest", request);
             model.addAttribute("errors", bindingResult.getAllErrors());
             return "fragments/invitation-form :: form";
         }
