@@ -6,48 +6,146 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css">
-        <title>Buseni DisciplineR</title>
+        <title th:text="#{app.title}">Discipliner</title>
+        
+        <!-- Alpine.js from WebJars -->
+        <script th:src="@{/webjars/alpinejs/dist/cdn.min.js}" defer></script>
+        
+        <!-- Compiled Tailwind CSS -->
+        <link th:href="@{/css/styles.css}" rel="stylesheet">
+        
+        <!-- Custom styles -->
+        <style>
+            [x-cloak] { display: none !important; }
+            .gradient-text {
+                @apply bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-blue-500;
+            }
+        </style>
     </head>
-    <body>
-          <!-- Hero Section -->
-          <section class="bg-gray-900 text-white">
-            <div class="container mx-auto px-4 py-16">
-                <h1 class="text-4xl font-bold mb-6">Welcome to Discipliner</h1>
+    <body class="bg-gray-50 dark:bg-gray-900">
+        <!-- Hero Section -->
+        <section class="relative overflow-hidden bg-white dark:bg-gray-900">
+            <!-- Background decoration -->
+            <div class="absolute inset-0 z-0">
+                <div class="absolute inset-0 bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-indigo-950/30 dark:to-blue-950/30 opacity-70"></div>
+                <div class="absolute top-0 right-0 w-1/3 h-1/3 bg-gradient-to-br from-indigo-200/20 to-blue-200/20 dark:from-indigo-500/10 dark:to-blue-500/10 rounded-full blur-3xl transform translate-x-1/3 -translate-y-1/3"></div>
+                <div class="absolute bottom-0 left-0 w-1/3 h-1/3 bg-gradient-to-tr from-blue-200/20 to-indigo-200/20 dark:from-blue-500/10 dark:to-indigo-500/10 rounded-full blur-3xl transform -translate-x-1/3 translate-y-1/3"></div>
             </div>
-            </section>
-            <!-- Features Section -->
-            <section class="bg-white py-16">
-                <div class="container mx-auto px-4">
-                    <h2 class="text-3xl font-bold mb-6 text-gray-900">Features</h2>
+
+            <!-- Hero content -->
+            <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-24 lg:py-32">
+                <div class="text-center">
+                    <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-gray-900 dark:text-white">
+                        <span th:text="#{landing.welcome.prefix}">Welcome to</span>
+                        <span class="gradient-text" th:text="#{app.title}">Discipliner</span>
+                    </h1>
+                    <p class="mt-6 max-w-2xl mx-auto text-lg sm:text-xl text-gray-600 dark:text-gray-300" th:text="#{landing.subtitle}">
+                        Empower your parenting journey with our innovative discipline management system.
+                    </p>
+                    <div class="mt-8 flex justify-center space-x-4">
+                        <a th:href="@{/login}" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200">
+                            <span th:text="#{landing.get.started}">Get Started</span>
+                            <svg class="ml-2 -mr-1 w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                            </svg>
+                        </a>
+                        <a href="#features" class="inline-flex items-center px-6 py-3 border border-gray-300 dark:border-gray-600 text-base font-medium rounded-lg text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200">
+                            <span th:text="#{landing.learn.more}">Learn More</span>
+                        </a>
+                    </div>
                 </div>
-                <!-- Feature Cards -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    <!-- Feature Card 1 -->
-                    <div class="bg-gray-100 p-6 rounded-lg shadow-md">
-                        <h3 class="text-lg font-bold mb-2">Feature 1</h3>
-                        <p class="text-gray-700">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>    
-                    </div>
-                    <!-- Feature Card 2 -->
-                    <div class="bg-gray-100 p-6 rounded-lg shadow-md">
-                        <h3 class="text-lg font-bold mb-2">Feature 2</h3>
-                        <p class="text-gray-700">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
-                    </div>
-                    <!-- Feature Card 3 -->
-                    <div class="bg-gray-100 p-6 rounded-lg shadow-md">
-                        <h3 class="text-lg font-bold mb-2">Feature 3</h3>
-                        <p class="text-gray-700">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
-                    </div>
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section id="features" class="py-20 sm:py-24 bg-white dark:bg-gray-800">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center">
+                    <h2 class="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white" th:text="#{landing.features.title}">Key Features</h2>
+                    <p class="mt-4 text-lg text-gray-600 dark:text-gray-300" th:text="#{landing.features.subtitle}">
+                        Everything you need to manage discipline effectively
+                    </p>
                 </div>
 
-            </section>
-            <!-- Footer Section -->
-            <footer class="bg-gray-900 text-white py-8">
-                <div class="container mx-auto px-4">
-                    <p class="text-center">© 2024 Buseni Discipline. All rights reserved.</p>
+                <div class="mt-16 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+                    <!-- Child Management -->
+                    <div class="relative group">
+                        <div class="absolute inset-0 rounded-2xl bg-gradient-to-r from-indigo-50 to-blue-50 dark:from-indigo-900/50 dark:to-blue-900/50 transform transition-transform group-hover:scale-105"></div>
+                        <div class="relative p-8 rounded-2xl bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700">
+                            <div class="inline-flex items-center justify-center p-3 bg-indigo-100 dark:bg-indigo-900/50 rounded-lg">
+                                <svg class="w-6 h-6 text-indigo-600 dark:text-indigo-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                                </svg>
+                            </div>
+                            <h3 class="mt-6 text-xl font-bold text-gray-900 dark:text-white" th:text="#{landing.feature.children.title}">Child Management</h3>
+                            <p class="mt-4 text-gray-600 dark:text-gray-300" th:text="#{landing.feature.children.description}">
+                                Easily manage multiple children's profiles and track their behavior progress over time.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Points System -->
+                    <div class="relative group">
+                        <div class="absolute inset-0 rounded-2xl bg-gradient-to-r from-indigo-50 to-blue-50 dark:from-indigo-900/50 dark:to-blue-900/50 transform transition-transform group-hover:scale-105"></div>
+                        <div class="relative p-8 rounded-2xl bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700">
+                            <div class="inline-flex items-center justify-center p-3 bg-indigo-100 dark:bg-indigo-900/50 rounded-lg">
+                                <svg class="w-6 h-6 text-indigo-600 dark:text-indigo-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                                </svg>
+                            </div>
+                            <h3 class="mt-6 text-xl font-bold text-gray-900 dark:text-white" th:text="#{landing.feature.points.title}">Points System</h3>
+                            <p class="mt-4 text-gray-600 dark:text-gray-300" th:text="#{landing.feature.points.description}">
+                                Fair and transparent points system to track behavior and encourage positive changes.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Parent Collaboration -->
+                    <div class="relative group">
+                        <div class="absolute inset-0 rounded-2xl bg-gradient-to-r from-indigo-50 to-blue-50 dark:from-indigo-900/50 dark:to-blue-900/50 transform transition-transform group-hover:scale-105"></div>
+                        <div class="relative p-8 rounded-2xl bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700">
+                            <div class="inline-flex items-center justify-center p-3 bg-indigo-100 dark:bg-indigo-900/50 rounded-lg">
+                                <svg class="w-6 h-6 text-indigo-600 dark:text-indigo-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                </svg>
+                            </div>
+                            <h3 class="mt-6 text-xl font-bold text-gray-900 dark:text-white" th:text="#{landing.feature.collaboration.title}">Parent Collaboration</h3>
+                            <p class="mt-4 text-gray-600 dark:text-gray-300" th:text="#{landing.feature.collaboration.description}">
+                                Share access with other parents or guardians to maintain consistent discipline.
+                            </p>
+                        </div>
+                    </div>
                 </div>
-            </footer>   
-          
+            </div>
+        </section>
+
+        <!-- CTA Section -->
+        <section class="relative bg-indigo-600 dark:bg-indigo-900">
+            <div class="absolute inset-0">
+                <div class="absolute inset-0 bg-gradient-to-br from-indigo-600 to-blue-600 dark:from-indigo-900 dark:to-blue-900 opacity-90"></div>
+            </div>
+            <div class="relative max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+                <div class="text-center">
+                    <h2 class="text-3xl font-extrabold tracking-tight text-white sm:text-4xl" th:text="#{landing.cta.title}">
+                        Ready to start your journey?
+                    </h2>
+                    <p class="mt-4 text-lg text-indigo-100" th:text="#{landing.cta.subtitle}">
+                        Join thousands of parents who are already using Discipliner to create a positive environment for their children.
+                    </p>
+                    <div class="mt-8">
+                        <a th:href="@{/register}" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-lg text-indigo-600 bg-white hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-indigo-600 focus:ring-white transition-colors duration-200">
+                            <span th:text="#{landing.cta.button}">Create Your Account</span>
+                            <svg class="ml-2 -mr-1 w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <div th:replace="~{fragments/footer :: footer}"></div>
     </body>
 </html>
 
