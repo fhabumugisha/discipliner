@@ -24,6 +24,8 @@ import com.buseni.discipline.children.repository.ChildRepository;
 import com.buseni.discipline.children.service.ChildInvitationService;
 import com.buseni.discipline.children.service.EmailService;
 import com.buseni.discipline.children.service.SmsService;
+import com.buseni.discipline.common.exception.InvalidOperationException;
+import com.buseni.discipline.common.exception.ResourceNotFoundException;
 import com.buseni.discipline.users.domain.User;
 import com.buseni.discipline.users.repository.UserRepository;
 
@@ -52,19 +54,16 @@ public class ChildInvitationServiceImpl implements ChildInvitationService {
     public void createInvitation(ChildInvitationRequest request) {
         log.debug("Creating invitation for child: {} with request: {}", request.childId(), request);
 
-        // Vérifier si l'enfant existe
+        // Verify child exists
         Child child = childRepository.findById(request.childId())
-                .orElseThrow(() -> new IllegalArgumentException("Child not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("error.child.not.found", request.childId()));
 
-        // Vérifier le nombre de parents
+        // Check number of parents
         if (child.getParentIds().size() >= MAX_PARENTS) {
-            throw new IllegalStateException("invitation.limit.reached");
+            throw new InvalidOperationException("error.invitation.limit.reached");
         }
 
-        // Générer un token unique pour l'invitation
         String token = UUID.randomUUID().toString();
-
-        // Créer l'invitation
         ChildInvitation invitation = ChildInvitation.builder()
                 .childId(child.getId())
                 .childName(child.getName())
@@ -74,33 +73,21 @@ public class ChildInvitationServiceImpl implements ChildInvitationService {
                 .expiresAt(Instant.now().plus(INVITATION_EXPIRY_HOURS, ChronoUnit.HOURS))
                 .build();
 
-        // Sauvegarder l'invitation
         invitationRepository.save(invitation);
-
-        // Construire l'URL d'invitation
         String invitationUrl = buildInvitationUrl(token);
 
-        // Envoyer l'invitation par email ou SMS
         if (request.email() != null && !request.email().isEmpty()) {
-            // Vérifier si l'utilisateur existe déjà
             Optional<User> existingUser = userRepository.findByEmail(request.email());
-
             if (existingUser.isPresent()) {
-                // L'utilisateur existe, envoyer un email d'invitation standard
                 emailService.sendInvitation(request.email(), child.getName(), invitationUrl);
             } else {
-                // L'utilisateur n'existe pas, envoyer un email avec lien d'inscription
                 emailService.sendInvitationWithRegistration(request.email(), child.getName(), invitationUrl);
             }
         } else if (request.phone() != null && !request.phone().isEmpty()) {
-            // Vérifier si l'utilisateur existe déjà avec ce numéro de téléphone
             Optional<User> existingUser = userRepository.findByPhone(request.phone());
-
             if (existingUser.isPresent()) {
-                // L'utilisateur existe, envoyer un SMS d'invitation standard
                 smsService.sendInvitation(request.phone(), child.getName(), invitationUrl);
             } else {
-                // L'utilisateur n'existe pas, envoyer un SMS avec lien d'inscription
                 smsService.sendInvitationWithRegistration(request.phone(), child.getName(), invitationUrl);
             }
         }
@@ -112,35 +99,29 @@ public class ChildInvitationServiceImpl implements ChildInvitationService {
     @Transactional
     public void acceptInvitation(String token) {
         ChildInvitation invitation = invitationRepository.findByToken(token)
-                .orElseThrow(() -> new IllegalArgumentException("invitation.invalid"));
+                .orElseThrow(() -> new ResourceNotFoundException("error.invitation.not.found"));
 
-        // Vérifier si l'invitation n'a pas expiré
         if (invitation.getExpiresAt().isBefore(Instant.now())) {
-            throw new IllegalStateException("invitation.expired");
+            throw new InvalidOperationException("error.invitation.expired");
         }
 
         Child child = childRepository.findById(invitation.getChildId())
-                .orElseThrow(() -> new IllegalArgumentException("Child not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("error.child.not.found", invitation.getChildId()));
 
-        // Vérifier le nombre de parents
         if (child.getParentIds().size() >= MAX_PARENTS) {
-            throw new IllegalStateException("invitation.limit.reached");
+            throw new InvalidOperationException("error.invitation.limit.reached");
         }
 
-        // Trouver l'utilisateur par email ou téléphone
         User user = findUserByEmailOrPhone(invitation.getInviteeEmail(), invitation.getInviteePhone())
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("error.user.not.found"));
 
-        // Vérifier si l'utilisateur n'est pas déjà parent
         if (child.getParentIds().contains(user.getId())) {
-            throw new IllegalStateException("invitation.already.parent");
+            throw new InvalidOperationException("error.invitation.already.parent");
         }
 
-        // Ajouter le parent
         child.getParentIds().add(user.getId());
         childRepository.save(child);
 
-        // Marquer l'invitation comme acceptée
         invitation.setAcceptedAt(Instant.now());
         invitationRepository.save(invitation);
 
@@ -151,10 +132,10 @@ public class ChildInvitationServiceImpl implements ChildInvitationService {
     @Transactional
     public void revokeInvitation(String invitationId) {
         ChildInvitation invitation = invitationRepository.findById(invitationId)
-                .orElseThrow(() -> new IllegalArgumentException("Invitation not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("error.invitation.not.found"));
 
         if (invitation.getStatus() != InvitationStatus.PENDING) {
-            throw new IllegalStateException("Invitation cannot be revoked");
+            throw new InvalidOperationException("error.invitation.cannot.be.revoked");
         }
 
         invitation.setStatus(InvitationStatus.REVOKED);
@@ -191,7 +172,7 @@ public class ChildInvitationServiceImpl implements ChildInvitationService {
     @Override
     public List<ChildPendingInvitationDto> getPendingInvitations(String parentId) {
         User parent = userRepository.findById(parentId)
-                .orElseThrow(() -> new IllegalArgumentException("Parent not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("error.parent.not.found", parentId));
         List<ChildInvitation> invitations = invitationRepository.findByInviteePhoneOrInviteeEmailAndStatus(
                 parent.getPhone(), parent.getEmail(), InvitationStatus.PENDING);
         return invitations.stream()
@@ -212,38 +193,33 @@ public class ChildInvitationServiceImpl implements ChildInvitationService {
     @Transactional
     public void acceptInvitationById(String invitationId) {
         ChildInvitation invitation = invitationRepository.findById(invitationId)
-                .orElseThrow(() -> new IllegalArgumentException("Invitation not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("error.invitation.not.found"));
 
         if (invitation.getStatus() != InvitationStatus.PENDING) {
-            throw new IllegalStateException("Invitation cannot be accepted");
+            throw new InvalidOperationException("error.invitation.cannot.be.accepted");
         }
 
         if (invitation.getExpiresAt().isBefore(Instant.now())) {
-            throw new IllegalStateException("Invitation expired");
+            throw new InvalidOperationException("error.invitation.expired");
         }
 
         Child child = childRepository.findById(invitation.getChildId())
-                .orElseThrow(() -> new IllegalArgumentException("Child not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("error.child.not.found", invitation.getChildId()));
 
-        // Vérifier le nombre de parents
         if (child.getParentIds().size() >= MAX_PARENTS) {
-            throw new IllegalStateException("invitation.limit.reached");
+            throw new InvalidOperationException("error.invitation.limit.reached");
         }
 
-        // Trouver l'utilisateur par email ou téléphone
         User user = findUserByEmailOrPhone(invitation.getInviteeEmail(), invitation.getInviteePhone())
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("error.user.not.found"));
 
-        // Vérifier si l'utilisateur n'est pas déjà parent
         if (child.getParentIds().contains(user.getId())) {
-            throw new IllegalStateException("invitation.already.parent");
+            throw new InvalidOperationException("error.invitation.already.parent");
         }
 
-        // Ajouter le parent
         child.getParentIds().add(user.getId());
         childRepository.save(child);
 
-        // Marquer l'invitation comme acceptée
         invitation.setStatus(InvitationStatus.ACCEPTED);
         invitation.setAcceptedAt(Instant.now());
         invitationRepository.save(invitation);
@@ -255,10 +231,10 @@ public class ChildInvitationServiceImpl implements ChildInvitationService {
     @Transactional
     public void revokeInvitationById(String invitationId) {
         ChildInvitation invitation = invitationRepository.findById(invitationId)
-                .orElseThrow(() -> new IllegalArgumentException("Invitation not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("error.invitation.not.found"));
 
         if (invitation.getStatus() != InvitationStatus.PENDING) {
-            throw new IllegalStateException("Invitation cannot be revoked");
+            throw new InvalidOperationException("error.invitation.cannot.be.revoked");
         }
 
         invitation.setStatus(InvitationStatus.REVOKED);

@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="${#locale.language}"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{error/layout}">
+<body>
+    <div layout:fragment="error-content">
+        <p class="mt-6 text-base leading-7 text-gray-600 dark:text-gray-400" th:text="#{error.403.description}">
+            You don't have permission to access this resource.
+        </p>
+        <a th:href="@{/}" th:text="#{error.action.home}" class="inline-block px-6 py-3 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition duration-200">
+            Return to Home
+        </a>
+    </div>
+</body>
+</html> 

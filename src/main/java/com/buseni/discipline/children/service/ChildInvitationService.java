@@ -2,7 +2,6 @@ package com.buseni.discipline.children.service;
 
 import java.util.List;
 
-import com.buseni.discipline.children.dto.ChildInvitationDto;
 import com.buseni.discipline.children.dto.ChildInvitationRequest;
 import com.buseni.discipline.children.dto.ChildPendingInvitationDto;
 

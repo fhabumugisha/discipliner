@@ -18,7 +18,7 @@ alwaysApply: true
 - Use **Alpine.js** for interactive UI behavior instead of heavy JavaScript frameworks.
 - Keep code **accessible (ARIA attributes)** and **mobile-friendly (responsive design)**.
 - Use  webjars and frontend-maven-plugin for web dependenciens ( alpine, htmx, tailwind) management
-
+- Use modern, professionnal and mobile friendly styling
 - Use io.github.wimdeblauwe(htmx-spring-boot-thymeleaf) htmx maven plugin
 
 ## HTML Structure

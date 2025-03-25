@@ -30,6 +30,7 @@ alwaysApply: true
 - Internationalize all messages. Use text from messages.properties , messages_en.properties and messages_fr.properties
 - Use constants instead of duplicated string texts in java classes
 - Use application.yaml for application properties
+- Use GlobalExceptionHandler for exceptions management
 
 ## Entity & Repository Rules
 - Define entities in `com.example.model` with:
