@@ -37,6 +37,16 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class ChildInvitationServiceImpl implements ChildInvitationService {
 
+    private static final String ERROR_INVITATION_LIMIT_REACHED = "error.invitation.limit.reached";      
+    private static final String ERROR_CHILD_NOT_FOUND = "error.child.not.found";
+    private static final String ERROR_INVITATION_NOT_FOUND = "error.invitation.not.found";
+    private static final String ERROR_USER_NOT_FOUND = "error.user.not.found";
+    private static final String ERROR_INVITATION_CANNOT_BE_REVOKED = "error.invitation.cannot.be.revoked";
+    private static final String ERROR_INVITATION_ALREADY_PARENT = "error.invitation.already.parent";
+    private static final String ERROR_INVITATION_EXPIRED = "error.invitation.expired";
+    private static final String ERROR_PARENT_NOT_FOUND = "error.parent.not.found";    
+    private static final String ERROR_INVITATION_CANNOT_BE_ACCEPTED = "error.invitation.cannot.be.accepted";
+
     private final ChildInvitationRepository invitationRepository;
     private final ChildRepository childRepository;
     private final UserRepository userRepository;
@@ -56,11 +66,11 @@ public class ChildInvitationServiceImpl implements ChildInvitationService {
 
         // Verify child exists
         Child child = childRepository.findById(request.childId())
-                .orElseThrow(() -> new ResourceNotFoundException("error.child.not.found", request.childId()));
+                .orElseThrow(() -> new ResourceNotFoundException(ERROR_CHILD_NOT_FOUND, request.childId()));
 
         // Check number of parents
         if (child.getParentIds().size() >= MAX_PARENTS) {
-            throw new InvalidOperationException("error.invitation.limit.reached");
+            throw new InvalidOperationException( ERROR_INVITATION_LIMIT_REACHED);
         }
 
         String token = UUID.randomUUID().toString();
@@ -99,24 +109,24 @@ public class ChildInvitationServiceImpl implements ChildInvitationService {
     @Transactional
     public void acceptInvitation(String token) {
         ChildInvitation invitation = invitationRepository.findByToken(token)
-                .orElseThrow(() -> new ResourceNotFoundException("error.invitation.not.found"));
+                .orElseThrow(() -> new ResourceNotFoundException(ERROR_INVITATION_NOT_FOUND));
 
         if (invitation.getExpiresAt().isBefore(Instant.now())) {
-            throw new InvalidOperationException("error.invitation.expired");
+            throw new InvalidOperationException(ERROR_INVITATION_EXPIRED);
         }
 
         Child child = childRepository.findById(invitation.getChildId())
-                .orElseThrow(() -> new ResourceNotFoundException("error.child.not.found", invitation.getChildId()));
+                .orElseThrow(() -> new ResourceNotFoundException(ERROR_CHILD_NOT_FOUND, invitation.getChildId()));
 
         if (child.getParentIds().size() >= MAX_PARENTS) {
-            throw new InvalidOperationException("error.invitation.limit.reached");
+            throw new InvalidOperationException(ERROR_INVITATION_LIMIT_REACHED);
         }
 
         User user = findUserByEmailOrPhone(invitation.getInviteeEmail(), invitation.getInviteePhone())
-                .orElseThrow(() -> new ResourceNotFoundException("error.user.not.found"));
+                .orElseThrow(() -> new ResourceNotFoundException(ERROR_USER_NOT_FOUND));
 
         if (child.getParentIds().contains(user.getId())) {
-            throw new InvalidOperationException("error.invitation.already.parent");
+            throw new InvalidOperationException(ERROR_INVITATION_ALREADY_PARENT);
         }
 
         child.getParentIds().add(user.getId());
@@ -132,10 +142,10 @@ public class ChildInvitationServiceImpl implements ChildInvitationService {
     @Transactional
     public void revokeInvitation(String invitationId) {
         ChildInvitation invitation = invitationRepository.findById(invitationId)
-                .orElseThrow(() -> new ResourceNotFoundException("error.invitation.not.found"));
+                .orElseThrow(() -> new ResourceNotFoundException(ERROR_INVITATION_NOT_FOUND));
 
         if (invitation.getStatus() != InvitationStatus.PENDING) {
-            throw new InvalidOperationException("error.invitation.cannot.be.revoked");
+            throw new InvalidOperationException(ERROR_INVITATION_CANNOT_BE_REVOKED);
         }
 
         invitation.setStatus(InvitationStatus.REVOKED);
@@ -172,7 +182,7 @@ public class ChildInvitationServiceImpl implements ChildInvitationService {
     @Override
     public List<ChildPendingInvitationDto> getPendingInvitations(String parentId) {
         User parent = userRepository.findById(parentId)
-                .orElseThrow(() -> new ResourceNotFoundException("error.parent.not.found", parentId));
+                .orElseThrow(() -> new ResourceNotFoundException( ERROR_PARENT_NOT_FOUND, parentId));
         List<ChildInvitation> invitations = invitationRepository.findByInviteePhoneOrInviteeEmailAndStatus(
                 parent.getPhone(), parent.getEmail(), InvitationStatus.PENDING);
         return invitations.stream()
@@ -193,28 +203,28 @@ public class ChildInvitationServiceImpl implements ChildInvitationService {
     @Transactional
     public void acceptInvitationById(String invitationId) {
         ChildInvitation invitation = invitationRepository.findById(invitationId)
-                .orElseThrow(() -> new ResourceNotFoundException("error.invitation.not.found"));
+                .orElseThrow(() -> new ResourceNotFoundException(   ERROR_INVITATION_NOT_FOUND));
 
         if (invitation.getStatus() != InvitationStatus.PENDING) {
-            throw new InvalidOperationException("error.invitation.cannot.be.accepted");
+            throw new InvalidOperationException(ERROR_INVITATION_CANNOT_BE_ACCEPTED);
         }
 
         if (invitation.getExpiresAt().isBefore(Instant.now())) {
-            throw new InvalidOperationException("error.invitation.expired");
+            throw new InvalidOperationException(ERROR_INVITATION_EXPIRED);
         }
 
         Child child = childRepository.findById(invitation.getChildId())
-                .orElseThrow(() -> new ResourceNotFoundException("error.child.not.found", invitation.getChildId()));
+                .orElseThrow(() -> new ResourceNotFoundException(ERROR_CHILD_NOT_FOUND, invitation.getChildId()));
 
         if (child.getParentIds().size() >= MAX_PARENTS) {
-            throw new InvalidOperationException("error.invitation.limit.reached");
+            throw new InvalidOperationException(ERROR_INVITATION_LIMIT_REACHED);
         }
 
         User user = findUserByEmailOrPhone(invitation.getInviteeEmail(), invitation.getInviteePhone())
-                .orElseThrow(() -> new ResourceNotFoundException("error.user.not.found"));
+                .orElseThrow(() -> new ResourceNotFoundException(ERROR_USER_NOT_FOUND));
 
         if (child.getParentIds().contains(user.getId())) {
-            throw new InvalidOperationException("error.invitation.already.parent");
+            throw new InvalidOperationException(ERROR_INVITATION_ALREADY_PARENT);
         }
 
         child.getParentIds().add(user.getId());
@@ -231,10 +241,10 @@ public class ChildInvitationServiceImpl implements ChildInvitationService {
     @Transactional
     public void revokeInvitationById(String invitationId) {
         ChildInvitation invitation = invitationRepository.findById(invitationId)
-                .orElseThrow(() -> new ResourceNotFoundException("error.invitation.not.found"));
+                .orElseThrow(() -> new ResourceNotFoundException(ERROR_INVITATION_NOT_FOUND));
 
         if (invitation.getStatus() != InvitationStatus.PENDING) {
-            throw new InvalidOperationException("error.invitation.cannot.be.revoked");
+                throw new InvalidOperationException(ERROR_INVITATION_CANNOT_BE_REVOKED);
         }
 
         invitation.setStatus(InvitationStatus.REVOKED);

@@ -14,6 +14,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import com.buseni.discipline.children.dto.ChildInvitationRequest;
 import com.buseni.discipline.children.service.ChildInvitationService;
 import com.buseni.discipline.children.service.ChildService;
+import com.buseni.discipline.common.exception.InvalidOperationException;
+import com.buseni.discipline.common.exception.ResourceNotFoundException;
+
 import io.github.wimdeblauwe.htmx.spring.boot.mvc.HxRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -63,7 +66,7 @@ public class ChildInvitationController {
             invitationService.createInvitation(request);
             model.addAttribute("success", true);
             model.addAttribute(MESSAGE_ATTR, messageSource.getMessage("invitation.sent.success", null, Locale.getDefault()));
-        } catch (IllegalStateException e) {
+        } catch (ResourceNotFoundException  | InvalidOperationException e) {
             model.addAttribute( ERROR_ATTR, messageSource.getMessage(e.getMessage(), null, Locale.getDefault()));
         }
 
@@ -76,7 +79,7 @@ public class ChildInvitationController {
             invitationService.acceptInvitation(token);
             model.addAttribute("success", true);
             model.addAttribute(MESSAGE_ATTR, messageSource.getMessage("invitation.accepted.success", null, Locale.getDefault()));
-        } catch (IllegalStateException | IllegalArgumentException e) {
+        } catch (ResourceNotFoundException  | InvalidOperationException e) {
             model.addAttribute( ERROR_ATTR, messageSource.getMessage(e.getMessage(), null, Locale.getDefault()));
         }
 
@@ -92,7 +95,7 @@ public class ChildInvitationController {
             model.addAttribute(MESSAGE_ATTR, messageSource.getMessage("invitation.revoked.success", null, Locale.getDefault()));
       
             return "fragments/invitation-result :: success";
-        } catch (IllegalStateException | IllegalArgumentException e) {
+        } catch (ResourceNotFoundException  | InvalidOperationException e) {
             model.addAttribute( ERROR_ATTR, messageSource.getMessage(e.getMessage(), null, Locale.getDefault()));
             return "fragments/invitation-result :: error";
         }
