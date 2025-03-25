@@ -103,9 +103,9 @@ public interface WeeklySanctionService {
      * 
      * @param parentId the ID of the parent
      * @param limit the limit of recent activity
-     * @return list of recent activity
+     * @return list of recent activity sorted by most recent first
      */
-    List<WeeklySanctionDto> getRecentActivity(String parentId, int limit);
+    List<SanctionHistoryDto> getRecentActivity(String parentId, int limit);
 
     /**
      * Get sanction history by child and date range.

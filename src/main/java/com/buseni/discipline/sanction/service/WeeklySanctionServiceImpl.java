@@ -318,13 +318,43 @@ public class WeeklySanctionServiceImpl implements WeeklySanctionService {
     }
 
     @Override
-        public List<WeeklySanctionDto> getRecentActivity(String parentId, int limit) {
+    public List<SanctionHistoryDto> getRecentActivity(String parentId, int limit) {
         return weeklySanctionRepository.findByParentIdOrderByWeekStartDateDesc(parentId)
             .stream()
-            .map(this::toDto)
-            .limit(limit)   
+            .flatMap(weekly -> weekly.getSanctions().stream()
+                .map(sanction -> {
+                    String appliedByName = "Unknown";
+                    try {
+                        appliedByName = userRepository.findById(sanction.appliedBy())
+                            .map(user -> user.getFirstName() + " " + user.getLastName())
+                            .orElse("Unknown");
+                    } catch (Exception e) {
+                        log.warn("Could not find user with ID: {}", sanction.appliedBy());
+                    }
+                    
+                    // Get child name
+                    String childName = childRepository.findById(weekly.getChildId())
+                        .map(Child::getName)
+                        .orElse("Unknown");
+                    
+                    return SanctionHistoryDto.builder()
+                        .id(weekly.getId() + "_" + sanction.appliedAt().toString())
+                        .childId(weekly.getChildId())
+                        .childName(childName)
+                        .ruleCode(sanction.ruleCode())
+                        .ruleDescription(sanction.ruleDescription())
+                        .pointsChange(sanction.points())
+                        .pointsBefore(weekly.getFinalPoints() - sanction.points())
+                        .pointsAfter(weekly.getFinalPoints())
+                        .appliedAt(sanction.appliedAt())
+                        .appliedBy(sanction.appliedBy())
+                        .appliedByName(appliedByName)
+                        .build();
+                }))
+            .sorted((s1, s2) -> s2.getAppliedAt().compareTo(s1.getAppliedAt()))
+            .limit(limit)
             .toList();
-    }     
+    }
     
     @Override
     public List<WeeklySanctionDto> getSanctionHistoryByChildAndDateRange(String childId, LocalDate dateFrom, LocalDate dateTo, String parentId) {
