@@ -1,0 +1,55 @@
+<!-- Invitation Form -->
+<form th:action="@{/children/{parentId}/invitations(parentId=${parentId})}"
+      th:method="POST"
+      th:object="${invitationDto}"
+      hx-post th:attr="hx-post=@{/children/{parentId}/invitations(parentId=${parentId})}"
+      hx-target="#childrenContainer"
+      hx-swap="outerHTML"
+      class="space-y-4">
+
+    <!-- Hidden Child ID -->
+    <input type="hidden" th:field="*{childId}" />
+
+    <!-- Email Field -->
+    <div>
+        <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300" th:text="#{invitations.form.email}">Email</label>
+        <div class="mt-1 relative">
+            <input type="email" 
+                   id="email" 
+                   th:field="*{email}"
+                   class="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 
+                          focus:outline-none focus:ring-blue-500 focus:border-blue-500 
+                          dark:bg-gray-700 dark:text-white sm:text-sm"
+                   th:placeholder="#{invitations.form.email.placeholder}"
+                   required>
+            <div th:if="${#fields.hasErrors('email')}" class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                <svg class="h-5 w-5 text-red-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                </svg>
+            </div>
+        </div>
+        <p th:if="${#fields.hasErrors('email')}" class="mt-2 text-sm text-red-600 dark:text-red-400" th:errors="*{email}">Email error</p>
+    </div>
+
+    <!-- Submit Button -->
+    <div class="flex justify-end space-x-3">
+        <button type="button"
+                @click="shareModal = false"
+                class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 
+                       bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500
+                       dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600
+                       transition-colors duration-200">
+            <span th:text="#{buttons.cancel}">Cancel</span>
+        </button>
+        <button type="submit"
+                class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white 
+                       bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500
+                       dark:bg-blue-500 dark:hover:bg-blue-600 dark:focus:ring-offset-gray-800
+                       transition-colors duration-200">
+            <svg class="mr-2 -ml-1 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6zM16 7a1 1 0 10-2 0v1h-1a1 1 0 100 2h1v1a1 1 0 102 0v-1h1a1 1 0 100-2h-1V7z" />
+            </svg>
+            <span th:text="#{invitations.form.submit}">Send Invitation</span>
+        </button>
+    </div>
+</form> 

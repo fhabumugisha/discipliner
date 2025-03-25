@@ -34,18 +34,6 @@
                       hx-post th:attr="hx-post=@{/children/{parentId}(parentId=${parentId})}"
                       hx-target="#childrenContainer"
                       hx-swap="outerHTML"
-                      hx-on::after-request="
-                        if(event.detail.successful) {
-                          const childName = document.getElementById('name').value;
-                          window.dispatchEvent(new CustomEvent('notification', {
-                            detail: {
-                              message: 'Child ' + childName + ' was successfully added',
-                              type: 'success'
-                            }
-                          }));
-                          document.getElementById('name').value = '';
-                          document.getElementById('age').value = '';
-                        }"
                       class="space-y-4">
                     
                     <!-- Name Field -->
@@ -113,19 +101,6 @@
                       hx-put th:attr="hx-put=@{/children/{parentId}/{childId}(parentId=${parentId},childId=${childDto.id})}"
                       hx-target="#childrenContainer"
                       hx-swap="outerHTML"
-                      hx-on::after-request="
-                        if(event.detail.successful) {
-                          const childName = document.getElementById('editName').value;
-                          window.dispatchEvent(new CustomEvent('notification', {
-                            detail: {
-                              message: 'Child ' + childName + ' was successfully updated',
-                              type: 'success'
-                            }
-                          }));
-                          // Reset form after successful update
-                          const form = document.getElementById('childForm');
-                          form.innerHTML = document.getElementById('addFormTemplate').innerHTML;
-                        }"
                       class="space-y-4">
                     
                     <!-- Name Field -->
@@ -282,118 +257,106 @@
                                         <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
                                     </svg>
                                 </button>
-                                <div x-data="{ shareModal: false, currentChildId: null }">
+                                <div x-data="{ shareModal: false, currentChildId: null }" 
+                                     @keydown.escape.window="shareModal = false"
+                                     class="relative z-10">
+                                    
+                                    <!-- Share Button -->
                                     <button type="button"
-                                            @click="currentChildId = $el.dataset.childId; shareModal = true"
-                                            th:data-child-id="${child.id}"
-                                            class="inline-flex items-center px-3 py-2 text-sm font-medium rounded-md text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                                            <path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z" />
+                                            @click="currentChildId = child.id; shareModal = true"
+                                            class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-full shadow-sm text-white 
+                                                   bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500
+                                                   dark:bg-blue-500 dark:hover:bg-blue-600 dark:focus:ring-offset-gray-800
+                                                   transition-colors duration-200">
+                                        <svg class="mr-1.5 -ml-1 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
                                         </svg>
-                                        <span th:text="#{children.share.button}">Share</span>
+                                        <span th:text="#{buttons.share}">Share</span>
                                     </button>
 
-                                    <!-- Share Modal -->
-                                    <div x-show="shareModal" 
-                                         x-cloak
-                                         class="relative z-50"
-                                         @keydown.escape.window="shareModal = false"
-                                         role="dialog"
-                                         aria-modal="true">
+                                    <!-- Modal Backdrop -->
+                                    <div x-show="shareModal"
+                                         x-transition:enter="ease-out duration-300"
+                                         x-transition:enter-start="opacity-0"
+                                         x-transition:enter-end="opacity-100"
+                                         x-transition:leave="ease-in duration-200"
+                                         x-transition:leave-start="opacity-100"
+                                         x-transition:leave-end="opacity-0"
+                                         class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+                                         @click="shareModal = false"></div>
+
+                                    <!-- Modal Content -->
+                                    <div x-show="shareModal"
+                                         x-transition:enter="ease-out duration-300"
+                                         x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                                         x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                                         x-transition:leave="ease-in duration-200"
+                                         x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                                         x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                                         class="fixed inset-0 z-10 overflow-y-auto"
+                                         @click.away="shareModal = false">
                                         
-                                        <!-- Backdrop -->
-                                        <div x-show="shareModal"
-                                             x-transition:enter="ease-out duration-300"
-                                             x-transition:enter-start="opacity-0"
-                                             x-transition:enter-end="opacity-100"
-                                             x-transition:leave="ease-in duration-200"
-                                             x-transition:leave-start="opacity-100"
-                                             x-transition:leave-end="opacity-0"
-                                             class="fixed inset-0 bg-gray-500/75 backdrop-blur-sm transition-opacity"
-                                             @click="shareModal = false">
-                                        </div>
+                                        <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+                                            <div class="relative transform overflow-hidden rounded-lg bg-white dark:bg-gray-800 px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
+                                                <!-- Modal Header -->
+                                                <div class="absolute right-0 top-0 pr-4 pt-4">
+                                                    <button type="button" 
+                                                            @click="shareModal = false"
+                                                            class="rounded-md bg-white dark:bg-gray-800 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                                                        <span class="sr-only">Close</span>
+                                                        <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                                        </svg>
+                                                    </button>
+                                                </div>
 
-                                        <!-- Modal Panel -->
-                                        <div class="fixed inset-0 z-10 overflow-y-auto">
-                                            <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
-                                                <div x-show="shareModal"
-                                                     x-transition:enter="ease-out duration-300"
-                                                     x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                                                     x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
-                                                     x-transition:leave="ease-in duration-200"
-                                                     x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
-                                                     x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                                                     class="relative transform overflow-hidden rounded-lg bg-white dark:bg-gray-800 px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 w-full max-w-lg sm:p-6"
-                                                     @click.away="shareModal = false">
-                                                    
-                                                    <!-- Header -->
-                                                    <div class="mb-4 sm:flex sm:items-start">
-                                                        <div class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900 sm:mx-0 sm:h-10 sm:w-10">
-                                                            <svg class="h-6 w-6 text-blue-600 dark:text-blue-200" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                                                <path stroke-linecap="round" stroke-linejoin="round" d="M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186l9.566-5.314m-9.566 7.5l9.566 5.314m0 0a2.25 2.25 0 103.935 2.186 2.25 2.25 0 00-3.935-2.186zm0-12.814a2.25 2.25 0 103.933-2.185 2.25 2.25 0 00-3.933 2.185z" />
-                                                            </svg>
-                                                        </div>
-                                                        <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
-                                                            <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-white" th:text="#{children.share.modal.title}">
-                                                                Share Access
-                                                            </h3>
-                                                            <p class="mt-2 text-sm text-gray-500 dark:text-gray-400" th:text="#{children.share.modal.description}">
-                                                                Invite someone to access this child's information.
-                                                            </p>
-                                                        </div>
-                                                        <!-- Close button -->
-                                                        <button type="button" 
-                                                                @click="shareModal = false"
-                                                                class="absolute right-4 top-4 text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
-                                                                aria-label="Close">
-                                                            <span class="sr-only" th:text="#{common.close}">Close</span>
-                                                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                                                            </svg>
-                                                        </button>
+                                                <!-- Modal Title -->
+                                                <div class="text-center sm:text-left">
+                                                    <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-white" th:text="#{children.share.title}">Share Access</h3>
+                                                    <div class="mt-2">
+                                                        <p class="text-sm text-gray-500 dark:text-gray-400" th:text="#{children.share.description}">
+                                                            Share access to this child's information with another parent or guardian.
+                                                        </p>
                                                     </div>
+                                                </div>
 
-                                                    <!-- Invitation Form -->
-                                                    <div id="invitation-form"
-                                                         class="mt-4"
-                                                         th:hx-get="@{/children/invitations/form}"
-                                                         th:hx-vals="*{childId: '__${child.id}__'}"
-                                                         hx-trigger="none"
-                                                         hx-target="#invitation-form"
-                                                         hx-swap="innerHTML"
-                                                         hx-on::after-request="
-                                                            if(event.detail.successful && event.detail.xhr.status === 200) {
-                                                                const responseText = event.detail.xhr.responseText;
-                                                                if(responseText.includes('success')) {
-                                                                    shareModal = false;
-                                                                }
-                                                            }"
-                                                         x-init="$nextTick(() => {
-                                                             if (shareModal && currentChildId) {
-                                                                 htmx.trigger('#invitation-form', 'load');
-                                                             }
-                                                         })"
-                                                         x-effect="if (shareModal && currentChildId) {
-                                                             htmx.trigger('#invitation-form', 'load');
-                                                         }">
-                                                        <!-- Loading indicator -->
-                                                        <div id="loading-indicator" class="flex justify-center py-6">
-                                                            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 dark:border-blue-500"></div>
-                                                        </div>
+                                                <!-- Loading Indicator -->
+                                                <div id="shareFormLoading" class="hidden">
+                                                    <div class="flex justify-center items-center py-8">
+                                                        <svg class="animate-spin h-8 w-8 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                        </svg>
                                                     </div>
+                                                </div>
 
-                                                    <!-- Invitation Result -->
-                                                    <div id="invitation-result" class="mt-4"></div>
-
-                                                    <!-- Footer -->
-                                                    <div class="mt-5 sm:mt-6 sm:grid sm:grid-flow-row-dense sm:grid-cols-2 sm:gap-3">
-                                                        <button type="button"
-                                                                @click="shareModal = false"
-                                                                class="mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-base font-medium text-gray-700 dark:text-gray-200 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 sm:col-start-1 sm:mt-0 sm:text-sm transition-colors duration-200"
-                                                                th:text="#{common.cancel}">
-                                                            Cancel
-                                                        </button>
-                                                    </div>
+                                                <!-- Share Form Container -->
+                                                <div id="shareFormContainer" 
+                                                     x-init="$watch('shareModal', value => {
+                                                         if (value && currentChildId) {
+                                                             document.getElementById('shareFormLoading').classList.remove('hidden');
+                                                             document.getElementById('shareFormContainer').classList.add('hidden');
+                                                             fetch(`/children/invitations/form?childId=${currentChildId}`, {
+                                                                 headers: {
+                                                                     'HX-Request': 'true'
+                                                                 }
+                                                             })
+                                                             .then(response => response.text())
+                                                             .then(html => {
+                                                                 document.getElementById('shareFormContainer').innerHTML = html;
+                                                                 document.getElementById('shareFormLoading').classList.add('hidden');
+                                                                 document.getElementById('shareFormContainer').classList.remove('hidden');
+                                                             })
+                                                             .catch(error => {
+                                                                 console.error('Error loading form:', error);
+                                                                 document.getElementById('shareFormLoading').classList.add('hidden');
+                                                                 document.getElementById('shareFormContainer').innerHTML = 
+                                                                     '<div class=\'text-center text-red-600 dark:text-red-400 py-4\'>Failed to load the invitation form. Please try again.</div>';
+                                                                 document.getElementById('shareFormContainer').classList.remove('hidden');
+                                                             });
+                                                         }
+                                                     })"
+                                                     class="mt-5 sm:mt-6">
                                                 </div>
                                             </div>
                                         </div>
@@ -459,7 +422,7 @@
                 </div>
 
                 <!-- Add success notification -->
-                <div th:if="${successMessage }" 
+                <div th:if="${successMessage}" 
                      x-data="{ show: true }"
                      x-show="show"
                      x-init="setTimeout(() => show = false, 3000)"
