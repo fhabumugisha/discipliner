@@ -4,7 +4,7 @@
     <!-- Toast Notification Fragment -->
     <div th:fragment="toast" 
          x-data="{ show: false, message: '', type: 'success' }"
-         x-init="$watch('show', value => { if(value) setTimeout(() => show = false, 3000) })"
+         x-init="$watch('show', value => { if(value) setTimeout(() => show = false, 9000) })"
          @notification.window="show = true; message = $event.detail.message; type = $event.detail.type || 'success'"
          x-show="show"
          x-transition:enter="transform ease-out duration-300 transition"

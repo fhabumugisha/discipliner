@@ -3,7 +3,6 @@ package com.buseni.discipline.children.controller;
 import java.util.List;
 import java.util.Locale;
 
-
 import org.springframework.context.MessageSource;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -17,10 +16,8 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.SessionAttributes;
 import org.springframework.web.bind.support.SessionStatus;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.buseni.discipline.children.dto.ChildDto;
-
 import com.buseni.discipline.children.dto.ChildPendingInvitationDto;
 import com.buseni.discipline.children.service.ChildInvitationService;
 import com.buseni.discipline.children.service.ChildService;
@@ -32,6 +29,11 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+/**
+ * Controller responsible for managing children-related operations and interfaces.
+ * Handles CRUD operations for children, and invitation management.
+ */
 @Controller
 @RequestMapping("/children")
 @RequiredArgsConstructor
@@ -40,20 +42,38 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ChildController {
 
+    // Model attribute constants
     public static final String CHILDREN_MODEL_ATTRIBUTE = "children";
     public static final String CHILD_DTO_MODEL_ATTRIBUTE = "childDto";
     public static final String PARENT_ID_MODEL_ATTRIBUTE = "parentId";
+    public static final String PENDING_INVITATIONS_MODEL_ATTRIBUTE = "pendingInvitations";
+    
+    // View fragments constants
     private static final String EDIT_MODE_ATTRIBUTE = "editMode";
-    private final ChildService childService;
-    private final ChildInvitationService invitationService;
-    private final MessageSource messageSource;      
+    private static final String SUCCESS_MESSAGE_ATTRIBUTE = "successMessage";
+    private static final String ERROR_MESSAGE_ATTRIBUTE = "errorMessage";
     private static final String CHILDREN_LIST_FRAGMENT_CHILD_FORM = "children/list :: #childForm";
     private static final String CHILDREN_LIST_FRAGMENT_CHILDREN_CONTAINER = "children/list :: #childrenContainer";
-    private static final String CHILDREN_LIST_FRAGMENT_CHILDREN_LIST = "children/list :: #childrenList";    
+    private static final String CHILDREN_LIST_FRAGMENT_CHILDREN_LIST = "children/list :: #childrenList";
     private static final String CHILDREN_LIST_PAGE = "children/list";
-    public static final String PENDING_INVITATIONS_MODEL_ATTRIBUTE = "pendingInvitations";
-    private static final String SUCCESS_MESSAGE_ATTRIBUTE = "successMessage";
+    
+    // Notification constants
+    private static final String HX_TRIGGER_HEADER = "HX-Trigger";
+    private static final String HX_REFRESH_HEADER = "HX-Refresh";
+    private static final String NOTIFICATION_FORMAT = "{\"notification\": {\"message\": \"%s\", \"type\": \"%s\"}}";
+    private static final String SUCCESS_TYPE = "success";
+    private static final String ERROR_TYPE = "error";
+    
+    // Message keys
+    private static final String INVITATION_ACCEPT_SUCCESS_KEY = "children.invitations.accepted.success";
+    private static final String INVITATION_REVOKE_SUCCESS_KEY = "children.invitations.revoked.success";
+    private static final String DEFAULT_ACCEPT_SUCCESS_MSG = "Invitation accepted successfully";
+    private static final String DEFAULT_REVOKE_SUCCESS_MSG = "Invitation revoked successfully";
 
+    // Dependencies
+    private final ChildService childService;
+    private final ChildInvitationService invitationService;
+    private final MessageSource messageSource;
 
     @GetMapping
     public String getChildrenPage(Model model, Authentication authentication, SessionStatus sessionStatus) {
@@ -151,7 +171,15 @@ public class ChildController {
         return CHILDREN_LIST_FRAGMENT_CHILDREN_CONTAINER;
     }
 
-
+    /**
+     * Handles the acceptance of an invitation.
+     * 
+     * @param parentId The ID of the parent accepting the invitation
+     * @param invitationId The ID of the invitation being accepted
+     * @param model The Spring MVC model
+     * @param response The HTTP response for setting headers
+     * @return The view name to render
+     */
     @PostMapping("/{parentId}/invitations/{invitationId}/accept")
     @HxRequest
     public String acceptInvitation(@PathVariable String parentId,
@@ -160,43 +188,40 @@ public class ChildController {
                                   HttpServletResponse response) {
         try {
             // Accept the invitation
+            log.info("Processing invitation acceptance: invitation={}, parent={}", invitationId, parentId);
             invitationService.acceptInvitationById(invitationId);
             
-            // Update both children list and pending invitations
-            List<ChildDto> updatedChildren = childService.getChildrenByParentId(parentId);
-            List<ChildPendingInvitationDto> updatedInvitations = invitationService.getPendingInvitations(parentId);
+            // Update model with fresh data
+            updateModelWithCurrentData(model, parentId);
             
-            model.addAttribute(CHILDREN_MODEL_ATTRIBUTE, updatedChildren);
-            model.addAttribute(PENDING_INVITATIONS_MODEL_ATTRIBUTE, updatedInvitations);
-            model.addAttribute(CHILD_DTO_MODEL_ATTRIBUTE, new ChildDto("", "", Integer.valueOf(0), Integer.valueOf(0)));
-            model.addAttribute(PARENT_ID_MODEL_ATTRIBUTE, parentId);
+            // Set success notification
+            sendNotification(response, INVITATION_ACCEPT_SUCCESS_KEY, DEFAULT_ACCEPT_SUCCESS_MSG, SUCCESS_TYPE);
             
-            // Add a success message
-            String successMessage = messageSource.getMessage("children.invitations.accepted.success", null, "Invitation accepted successfully", Locale.getDefault());
-            model.addAttribute(SUCCESS_MESSAGE_ATTRIBUTE, successMessage);
-            
-            // Force page refresh
-            response.setHeader("HX-Refresh", "true");
+            log.info("Invitation accepted successfully: invitation={}", invitationId);
         } catch (InvalidOperationException e) {
-            log.error("Error accepting invitation: {}", e.getMessage());
+            log.error("Error accepting invitation: {}", e.getMessage(), e);
             
-            // Update model with current state
-            model.addAttribute(CHILDREN_MODEL_ATTRIBUTE, childService.getChildrenByParentId(parentId));
-            model.addAttribute(PENDING_INVITATIONS_MODEL_ATTRIBUTE, invitationService.getPendingInvitations(parentId));
-            model.addAttribute(CHILD_DTO_MODEL_ATTRIBUTE, new ChildDto("", "", Integer.valueOf(0), Integer.valueOf(0)));
-            model.addAttribute(PARENT_ID_MODEL_ATTRIBUTE, parentId);
+            // Update model with current data
+            updateModelWithCurrentData(model, parentId);
             
-            // Add error message
-            String errorMessage = messageSource.getMessage(e.getMessageKey(), null, "Failed to accept invitation. Please try again.", Locale.getDefault());
-            model.addAttribute(SUCCESS_MESSAGE_ATTRIBUTE, errorMessage);
-            
-            // Force page refresh even on error
-            response.setHeader("HX-Refresh", "true");
+            // Set error notification
+            sendNotification(response, e.getMessageKey(), e.getMessage(), ERROR_TYPE);
         }
         
+        // Force page refresh
+        response.setHeader(HX_REFRESH_HEADER, "true");
         return CHILDREN_LIST_FRAGMENT_CHILDREN_CONTAINER;
     }
 
+    /**
+     * Handles the revocation of an invitation.
+     * 
+     * @param parentId The ID of the parent revoking the invitation
+     * @param invitationId The ID of the invitation being revoked
+     * @param model The Spring MVC model
+     * @param response The HTTP response for setting headers
+     * @return The view name to render
+     */
     @PostMapping("/{parentId}/invitations/{invitationId}/revoke")
     @HxRequest
     public String revokeInvitation(@PathVariable String parentId,
@@ -205,43 +230,60 @@ public class ChildController {
                                   HttpServletResponse response) {
         try {
             // Revoke the invitation
+            log.info("Processing invitation revocation: invitation={}, parent={}", invitationId, parentId);
             invitationService.revokeInvitationById(invitationId);
             
-            // Always update both children list and pending invitations to ensure consistency
-            List<ChildDto> updatedChildren = childService.getChildrenByParentId(parentId);
-            List<ChildPendingInvitationDto> updatedInvitations = invitationService.getPendingInvitations(parentId);
+            // Update model with fresh data
+            updateModelWithCurrentData(model, parentId);
             
-            model.addAttribute(CHILDREN_MODEL_ATTRIBUTE, updatedChildren);
-            model.addAttribute(PENDING_INVITATIONS_MODEL_ATTRIBUTE, updatedInvitations);
-            model.addAttribute(CHILD_DTO_MODEL_ATTRIBUTE, new ChildDto("", "", Integer.valueOf(0), Integer.valueOf(0)));
-            model.addAttribute(PARENT_ID_MODEL_ATTRIBUTE, parentId);
+            // Set success notification
+            sendNotification(response, INVITATION_REVOKE_SUCCESS_KEY, DEFAULT_REVOKE_SUCCESS_MSG, SUCCESS_TYPE);
             
-            // Add a success message
-            String successMessage = messageSource.getMessage("children.invitations.revoked.success", null, "Invitation revoked successfully", Locale.getDefault());
-            model.addAttribute(SUCCESS_MESSAGE_ATTRIBUTE, successMessage);
-            
-            // Force page refresh
-            response.setHeader("HX-Refresh", "true");
+            log.info("Invitation revoked successfully: invitation={}", invitationId);
         } catch (InvalidOperationException e) {
-            log.error("Error revoking invitation: {}", e.getMessage());
+            log.error("Error revoking invitation: {}", e.getMessage(), e);
             
-            // Update model with current state
-            List<ChildDto> currentChildren = childService.getChildrenByParentId(parentId);
-            List<ChildPendingInvitationDto> currentInvitations = invitationService.getPendingInvitations(parentId);
+            // Update model with current data
+            updateModelWithCurrentData(model, parentId);
             
-            model.addAttribute(CHILDREN_MODEL_ATTRIBUTE, currentChildren);
-            model.addAttribute(PENDING_INVITATIONS_MODEL_ATTRIBUTE, currentInvitations);
-            model.addAttribute(CHILD_DTO_MODEL_ATTRIBUTE, new ChildDto("", "", Integer.valueOf(0), Integer.valueOf(0)));
-            model.addAttribute(PARENT_ID_MODEL_ATTRIBUTE, parentId);
-            
-            // Add error message
-            String errorMessage = messageSource.getMessage(e.getMessageKey(), null, "Failed to revoke invitation", Locale.getDefault());
-            model.addAttribute(SUCCESS_MESSAGE_ATTRIBUTE, errorMessage);
-            
-            // Force page refresh even on error
-            response.setHeader("HX-Refresh", "true");
+            // Set error notification
+            sendNotification(response, e.getMessageKey(), e.getMessage(), ERROR_TYPE);
         }
         
+        // Force page refresh
+        response.setHeader(HX_REFRESH_HEADER, "true");
         return CHILDREN_LIST_FRAGMENT_CHILDREN_CONTAINER;
+    }
+    
+    /**
+     * Updates the model with the current children and invitation data.
+     * 
+     * @param model The Spring MVC model
+     * @param parentId The parent ID
+     */
+    private void updateModelWithCurrentData(Model model, String parentId) {
+        // Get current data
+        List<ChildDto> children = childService.getChildrenByParentId(parentId);
+        List<ChildPendingInvitationDto> invitations = invitationService.getPendingInvitations(parentId);
+        
+        // Update model
+        model.addAttribute(CHILDREN_MODEL_ATTRIBUTE, children);
+        model.addAttribute(PENDING_INVITATIONS_MODEL_ATTRIBUTE, invitations);
+        model.addAttribute(CHILD_DTO_MODEL_ATTRIBUTE, new ChildDto("", "", Integer.valueOf(0), Integer.valueOf(0)));
+        model.addAttribute(PARENT_ID_MODEL_ATTRIBUTE, parentId);
+    }
+    
+    /**
+     * Sends a notification using the HTMX notification system.
+     * 
+     * @param response The HTTP response for setting headers
+     * @param messageKey The message key for internationalization
+     * @param defaultMessage The default message if the key is not found
+     * @param notificationType The type of notification (success, error, info)
+     */
+    private void sendNotification(HttpServletResponse response, String messageKey, String defaultMessage, String notificationType) {
+        String message = messageSource.getMessage(messageKey, null, defaultMessage, Locale.getDefault());
+        String triggerJson = String.format(NOTIFICATION_FORMAT, message, notificationType);
+        response.setHeader(HX_TRIGGER_HEADER, triggerJson);
     }
 } 
