@@ -257,14 +257,20 @@
                                         <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
                                     </svg>
                                 </button>
-                                <div x-data="{ shareModal: false, currentChildId: null }" 
+                                <div x-data="{ shareModal: false }" 
                                      @keydown.escape.window="shareModal = false"
-                                     class="relative z-10">
+                                     class="relative">
                                     
                                     <!-- Share Button -->
                                     <button type="button"
-                                            th:attr="data-child-id=${child.id}"
-                                            @click="shareModal = true; currentChildId = $el.getAttribute('data-child-id')"
+                                            th:data-child-id="${child.id}"
+                                            th:hx-get="@{/children/invitations/form}"
+                                            th:hx-vals="'{&quot;childId&quot;: &quot;' + ${child.id} + '&quot;}'"
+                                            th:hx-target="'#modalContent-' + ${child.id}"
+                                            hx-trigger="click"
+                                            hx-swap="innerHTML show:window:top"
+                                            @click="shareModal = true; $store.modalOpen = true"
+                                            x-bind:class="{ 'invisible': $store.modalOpen && !shareModal }"
                                             class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-full shadow-sm text-white 
                                                    bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500
                                                    dark:bg-blue-500 dark:hover:bg-blue-600 dark:focus:ring-offset-gray-800
@@ -275,89 +281,83 @@
                                         <span th:text="#{buttons.share}">Share</span>
                                     </button>
 
-                                    <!-- Modal Backdrop -->
+                                    <!-- Modal Container -->
                                     <div x-show="shareModal"
-                                         x-transition:enter="ease-out duration-300"
-                                         x-transition:enter-start="opacity-0"
-                                         x-transition:enter-end="opacity-100"
-                                         x-transition:leave="ease-in duration-200"
-                                         x-transition:leave-start="opacity-100"
-                                         x-transition:leave-end="opacity-0"
-                                         class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
-                                         @click="shareModal = false"></div>
+                                         x-cloak
+                                         class="relative z-50"
+                                         aria-labelledby="modal-title" 
+                                         role="dialog" 
+                                         aria-modal="true">
+                                        <!-- Background backdrop -->
+                                        <div x-show="shareModal"
+                                             x-transition:enter="ease-out duration-300"
+                                             x-transition:enter-start="opacity-0"
+                                             x-transition:enter-end="opacity-100"
+                                             x-transition:leave="ease-in duration-200"
+                                             x-transition:leave-start="opacity-100"
+                                             x-transition:leave-end="opacity-0"
+                                             class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+                                             @click="shareModal = false; $store.modalOpen = false"></div>
 
-                                    <!-- Modal Content -->
-                                    <div x-show="shareModal"
-                                         x-transition:enter="ease-out duration-300"
-                                         x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                                         x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
-                                         x-transition:leave="ease-in duration-200"
-                                         x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
-                                         x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                                         class="fixed inset-0 z-10 overflow-y-auto"
-                                         @click.away="shareModal = false">
-                                        
-                                        <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-                                            <div class="relative transform overflow-hidden rounded-lg bg-white dark:bg-gray-800 px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
-                                                <!-- Modal Header -->
-                                                <div class="absolute right-0 top-0 pr-4 pt-4">
-                                                    <button type="button" 
-                                                            @click="shareModal = false"
-                                                            class="rounded-md bg-white dark:bg-gray-800 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
-                                                        <span class="sr-only">Close</span>
-                                                        <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                                                        </svg>
-                                                    </button>
-                                                </div>
-
-                                                <!-- Modal Title -->
-                                                <div class="text-center sm:text-left">
-                                                    <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-white" th:text="#{children.share.title}">Share Access</h3>
-                                                    <div class="mt-2">
-                                                        <p class="text-sm text-gray-500 dark:text-gray-400" th:text="#{children.share.description}">
-                                                            Share access to this child's information with another parent or guardian.
-                                                        </p>
+                                        <div class="fixed inset-0 z-50 w-screen overflow-y-auto">
+                                            <div class="flex min-h-full items-center justify-center p-4 sm:p-6 md:p-8">
+                                                <!-- Modal panel -->
+                                                <div x-show="shareModal"
+                                                     x-transition:enter="ease-out duration-300"
+                                                     x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                                                     x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                                                     x-transition:leave="ease-in duration-200"
+                                                     x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                                                     x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                                                     class="relative transform overflow-hidden rounded-lg bg-white dark:bg-gray-800 w-full sm:w-1/2 mx-auto shadow-xl transition-all"
+                                                     @click.away="shareModal = false; $store.modalOpen = false">
+                                                    
+                                                    <!-- Mobile Header -->
+                                                    <div class="sm:hidden flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+                                                        <h3 class="text-lg font-medium text-gray-900 dark:text-white" th:text="#{children.share.title}">Share Access</h3>
+                                                        <button type="button" 
+                                                                @click="shareModal = false; $store.modalOpen = false"
+                                                                class="rounded-md text-gray-400 hover:text-gray-500">
+                                                            <span class="sr-only">Close</span>
+                                                            <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                                            </svg>
+                                                        </button>
                                                     </div>
-                                                </div>
 
-                                                <!-- Loading Indicator -->
-                                                <div id="shareFormLoading" class="hidden">
-                                                    <div class="flex justify-center items-center py-8">
-                                                        <svg class="animate-spin h-8 w-8 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                                        </svg>
+                                                    <div class="px-4 sm:px-6 md:px-8 py-5">
+                                                        <!-- Desktop Header -->
+                                                        <div class="hidden sm:block">
+                                                            <div class="flex items-start justify-between">
+                                                                <h3 class="text-lg font-medium text-gray-900 dark:text-white" th:text="#{children.share.title}">Share Access</h3>
+                                                                <button type="button" 
+                                                                        @click="shareModal = false; $store.modalOpen = false"
+                                                                        class="rounded-md text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
+                                                                    <span class="sr-only">Close</span>
+                                                                    <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                                                    </svg>
+                                                                </button>
+                                                            </div>
+                                                            <div class="mt-2">
+                                                                <p class="text-sm text-gray-500 dark:text-gray-400" th:text="#{children.share.description}">
+                                                                    Share access to this child's information with another parent or guardian.
+                                                                </p>
+                                                            </div>
+                                                        </div>
+
+                                                        <!-- Modal Content -->
+                                                        <div th:id="'modalContent-' + ${child.id}"
+                                                             class="mt-4 space-y-4">
+                                                            <!-- Loading Indicator -->
+                                                            <div class="htmx-indicator flex justify-center py-8">
+                                                                <svg class="animate-spin h-8 w-8 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                                </svg>
+                                                            </div>
+                                                        </div>
                                                     </div>
-                                                </div>
-
-                                                <!-- Share Form Container -->
-                                                <div id="shareFormContainer" 
-                                                     x-init="$watch('shareModal', value => {
-                                                         if (value && currentChildId) {
-                                                             document.getElementById('shareFormLoading').classList.remove('hidden');
-                                                             document.getElementById('shareFormContainer').classList.add('hidden');
-                                                             fetch(`/children/invitations/form?childId=${currentChildId}`, {
-                                                                 headers: {
-                                                                     'HX-Request': 'true'
-                                                                 }
-                                                             })
-                                                             .then(response => response.text())
-                                                             .then(html => {
-                                                                 document.getElementById('shareFormContainer').innerHTML = html;
-                                                                 document.getElementById('shareFormLoading').classList.add('hidden');
-                                                                 document.getElementById('shareFormContainer').classList.remove('hidden');
-                                                             })
-                                                             .catch(error => {
-                                                                 console.error('Error loading form:', error);
-                                                                 document.getElementById('shareFormLoading').classList.add('hidden');
-                                                                 document.getElementById('shareFormContainer').innerHTML = 
-                                                                     '<div class=\'text-center text-red-600 dark:text-red-400 py-4\'>Failed to load the invitation form. Please try again.</div>';
-                                                                 document.getElementById('shareFormContainer').classList.remove('hidden');
-                                                             });
-                                                         }
-                                                     })"
-                                                     class="mt-5 sm:mt-6">
                                                 </div>
                                             </div>
                                         </div>
@@ -453,6 +453,16 @@
     <!-- Style pour x-cloak -->
     <style>
         [x-cloak] { display: none !important; }
+        .htmx-indicator { display: none; }
+        .htmx-request .htmx-indicator { display: flex; }
+        .htmx-request.htmx-indicator { display: flex; }
     </style>
+
+    <!-- Add this at the beginning of your body or just after the opening body tag -->
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.store('modalOpen', false)
+        })
+    </script>
 </body>
 </html> 
