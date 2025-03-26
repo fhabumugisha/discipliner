@@ -182,7 +182,7 @@ public class ChildController {
             model.addAttribute(PARENT_ID_MODEL_ATTRIBUTE, parentId);
             
             // Add error message as a normal success message (since we don't have error message in the template)
-            String errorMessage = messageSource.getMessage("children.invitations.error", null, "Failed to accept invitation. Please try again.", Locale.getDefault());
+            String errorMessage = messageSource.getMessage(e.getMessageKey(), null, "Failed to accept invitation. Please try again.", Locale.getDefault());
             model.addAttribute(SUCCESS_MESSAGE_ATTRIBUTE, errorMessage);
         }
         
@@ -196,24 +196,40 @@ public class ChildController {
                                   Model model) {
         try {
             // Revoke the invitation
+            log.info("Revoking invitation with ID: {} for parent: {}", invitationId, parentId);
             invitationService.revokeInvitationById(invitationId);
             
-        // Always update both children list and pending invitations to ensure consistency
-        List<ChildDto> updatedChildren = childService.getChildrenByParentId(parentId);
-        List<ChildPendingInvitationDto> updatedInvitations = invitationService.getPendingInvitations(parentId);
-        
-        model.addAttribute(CHILDREN_MODEL_ATTRIBUTE, updatedChildren);
-        model.addAttribute(PENDING_INVITATIONS_MODEL_ATTRIBUTE, updatedInvitations);
-        model.addAttribute(CHILD_DTO_MODEL_ATTRIBUTE, new ChildDto("", "", Integer.valueOf(0), Integer.valueOf(0)));
-        model.addAttribute(PARENT_ID_MODEL_ATTRIBUTE, parentId);
-        
-        // Add a success message
-        String successMessage = messageSource.getMessage("children.invitations.revoked.success", null, "Invitation revoked successfully", Locale.getDefault());
-        model.addAttribute(SUCCESS_MESSAGE_ATTRIBUTE, successMessage);
+            // Always update both children list and pending invitations to ensure consistency
+            List<ChildDto> updatedChildren = childService.getChildrenByParentId(parentId);
+            List<ChildPendingInvitationDto> updatedInvitations = invitationService.getPendingInvitations(parentId);
             
-        return CHILDREN_LIST_FRAGMENT_CHILDREN_CONTAINER;
+            model.addAttribute(CHILDREN_MODEL_ATTRIBUTE, updatedChildren);
+            model.addAttribute(PENDING_INVITATIONS_MODEL_ATTRIBUTE, updatedInvitations);
+            model.addAttribute(CHILD_DTO_MODEL_ATTRIBUTE, new ChildDto("", "", Integer.valueOf(0), Integer.valueOf(0)));
+            model.addAttribute(PARENT_ID_MODEL_ATTRIBUTE, parentId);
+            
+            // Add a success message
+            String successMessage = messageSource.getMessage("children.invitations.revoked.success", null, "Invitation revoked successfully", Locale.getDefault());
+            model.addAttribute(SUCCESS_MESSAGE_ATTRIBUTE, successMessage);
+            
+            log.info("Invitation revoked successfully: {}", invitationId);
+            return CHILDREN_LIST_FRAGMENT_CHILDREN_CONTAINER;
         } catch (InvalidOperationException e) {
             log.error("Error revoking invitation: {}", e.getMessage());
+            
+            // Update model with current state
+            List<ChildDto> currentChildren = childService.getChildrenByParentId(parentId);
+            List<ChildPendingInvitationDto> currentInvitations = invitationService.getPendingInvitations(parentId);
+            
+            model.addAttribute(CHILDREN_MODEL_ATTRIBUTE, currentChildren);
+            model.addAttribute(PENDING_INVITATIONS_MODEL_ATTRIBUTE, currentInvitations);
+            model.addAttribute(CHILD_DTO_MODEL_ATTRIBUTE, new ChildDto("", "", Integer.valueOf(0), Integer.valueOf(0)));
+            model.addAttribute(PARENT_ID_MODEL_ATTRIBUTE, parentId);
+            
+            // Add error message as success message
+            String errorMessage = messageSource.getMessage(e.getMessageKey(), null, "Failed to revoke invitation", Locale.getDefault());
+            model.addAttribute(SUCCESS_MESSAGE_ATTRIBUTE, errorMessage);
+            
             return CHILDREN_LIST_FRAGMENT_CHILDREN_CONTAINER;
         }
     }
