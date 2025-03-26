@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.SessionAttributes;
 import org.springframework.web.bind.support.SessionStatus;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.buseni.discipline.children.dto.ChildDto;
 
@@ -27,6 +28,7 @@ import com.buseni.discipline.common.exception.InvalidOperationException;
 import com.buseni.discipline.users.domain.User;
 
 import io.github.wimdeblauwe.htmx.spring.boot.mvc.HxRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -154,7 +156,8 @@ public class ChildController {
     @HxRequest
     public String acceptInvitation(@PathVariable String parentId,
                                   @PathVariable String invitationId,
-                                  Model model) {
+                                  Model model,
+                                  HttpServletResponse response) {
         try {
             // Accept the invitation
             invitationService.acceptInvitationById(invitationId);
@@ -171,8 +174,10 @@ public class ChildController {
             // Add a success message
             String successMessage = messageSource.getMessage("children.invitations.accepted.success", null, "Invitation accepted successfully", Locale.getDefault());
             model.addAttribute(SUCCESS_MESSAGE_ATTRIBUTE, successMessage);
+            
+            // Force page refresh
+            response.setHeader("HX-Refresh", "true");
         } catch (InvalidOperationException e) {
-            // Log the error (you can use System.out.println if you don't have a logger configured)
             log.error("Error accepting invitation: {}", e.getMessage());
             
             // Update model with current state
@@ -181,9 +186,12 @@ public class ChildController {
             model.addAttribute(CHILD_DTO_MODEL_ATTRIBUTE, new ChildDto("", "", Integer.valueOf(0), Integer.valueOf(0)));
             model.addAttribute(PARENT_ID_MODEL_ATTRIBUTE, parentId);
             
-            // Add error message as a normal success message (since we don't have error message in the template)
+            // Add error message
             String errorMessage = messageSource.getMessage(e.getMessageKey(), null, "Failed to accept invitation. Please try again.", Locale.getDefault());
             model.addAttribute(SUCCESS_MESSAGE_ATTRIBUTE, errorMessage);
+            
+            // Force page refresh even on error
+            response.setHeader("HX-Refresh", "true");
         }
         
         return CHILDREN_LIST_FRAGMENT_CHILDREN_CONTAINER;
@@ -193,10 +201,10 @@ public class ChildController {
     @HxRequest
     public String revokeInvitation(@PathVariable String parentId,
                                   @PathVariable String invitationId,
-                                  Model model) {
+                                  Model model,
+                                  HttpServletResponse response) {
         try {
             // Revoke the invitation
-            log.info("Revoking invitation with ID: {} for parent: {}", invitationId, parentId);
             invitationService.revokeInvitationById(invitationId);
             
             // Always update both children list and pending invitations to ensure consistency
@@ -212,8 +220,8 @@ public class ChildController {
             String successMessage = messageSource.getMessage("children.invitations.revoked.success", null, "Invitation revoked successfully", Locale.getDefault());
             model.addAttribute(SUCCESS_MESSAGE_ATTRIBUTE, successMessage);
             
-            log.info("Invitation revoked successfully: {}", invitationId);
-            return CHILDREN_LIST_FRAGMENT_CHILDREN_CONTAINER;
+            // Force page refresh
+            response.setHeader("HX-Refresh", "true");
         } catch (InvalidOperationException e) {
             log.error("Error revoking invitation: {}", e.getMessage());
             
@@ -226,11 +234,14 @@ public class ChildController {
             model.addAttribute(CHILD_DTO_MODEL_ATTRIBUTE, new ChildDto("", "", Integer.valueOf(0), Integer.valueOf(0)));
             model.addAttribute(PARENT_ID_MODEL_ATTRIBUTE, parentId);
             
-            // Add error message as success message
+            // Add error message
             String errorMessage = messageSource.getMessage(e.getMessageKey(), null, "Failed to revoke invitation", Locale.getDefault());
             model.addAttribute(SUCCESS_MESSAGE_ATTRIBUTE, errorMessage);
             
-            return CHILDREN_LIST_FRAGMENT_CHILDREN_CONTAINER;
+            // Force page refresh even on error
+            response.setHeader("HX-Refresh", "true");
         }
+        
+        return CHILDREN_LIST_FRAGMENT_CHILDREN_CONTAINER;
     }
 } 

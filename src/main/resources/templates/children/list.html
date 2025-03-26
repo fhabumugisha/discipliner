@@ -398,9 +398,11 @@
                                                     <!-- Bouton pour accepter l'invitation -->
                                                     <button type="button"
                                                             hx-post th:attr="hx-post=@{/children/{parentId}/invitations/{invitationId}/accept(parentId=${parentId},invitationId=${invitation.id})}"
-                                                            hx-target="#childrenContainer"
-                                                            hx-swap="outerHTML"
-                                                            hx-trigger="click"
+                                                            hx-target="body"
+                                                            hx-swap="none"
+                                                            hx-push-url="false"
+                                                            hx-indicator=".htmx-indicator"
+                                                            hx-headers='{"HX-Trigger": "invitation-processed"}'
                                                             class="inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded text-green-700 bg-green-100 hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 dark:bg-green-900 dark:text-green-100 dark:hover:bg-green-800"
                                                             th:text="#{invitations.pending.accept}">
                                                         Accepter
@@ -408,9 +410,11 @@
                                                     <!-- Bouton pour refuser l'invitation -->
                                                     <button type="button"
                                                             hx-post th:attr="hx-post=@{/children/{parentId}/invitations/{invitationId}/revoke(parentId=${parentId},invitationId=${invitation.id})}"
-                                                            hx-target="#childrenContainer"
-                                                            hx-swap="outerHTML"
-                                                            hx-trigger="click"
+                                                            hx-target="body"
+                                                            hx-swap="none"
+                                                            hx-push-url="false"
+                                                            hx-indicator=".htmx-indicator"
+                                                            hx-headers='{"HX-Trigger": "invitation-processed"}'
                                                             class="inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 dark:bg-red-900 dark:text-red-100 dark:hover:bg-red-800"
                                                             th:text="#{invitations.pending.revoke}">
                                                         Refuser
@@ -466,6 +470,35 @@
         document.addEventListener('alpine:init', () => {
             Alpine.store('modalOpen', false)
         })
+        
+        // Script pour débloquer l'interface après les requêtes HTMX
+        document.addEventListener('htmx:afterSwap', function(event) {
+            // S'assurer que l'interface n'est plus bloquée
+            document.body.classList.remove('htmx-swapping');
+            
+            // Réinitialiser le store Alpine.js si nécessaire
+            if (window.Alpine && Alpine.store) {
+                Alpine.store('modalOpen', false);
+            }
+        });
+        
+        document.addEventListener('htmx:afterRequest', function(event) {
+            // Assurer que l'interface n'est pas bloquée après une requête
+            setTimeout(function() {
+                document.body.classList.remove('htmx-swapping');
+                document.body.classList.remove('htmx-request');
+                
+                // Réinitialiser le store Alpine.js si nécessaire
+                if (window.Alpine && Alpine.store) {
+                    Alpine.store('modalOpen', false);
+                }
+            }, 100);
+        });
     </script>
+
+    <!-- À placer à la fin de la section des scripts, juste avant la fermeture de body -->
+    <div x-data 
+         x-on:invitation-processed.window="setTimeout(() => { window.location.href = window.location.href }, 100)">
+    </div>
 </body>
 </html> 
