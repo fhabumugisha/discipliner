@@ -1,0 +1,87 @@
+
+Ctrl+K to generate a command
+Please  add the following feature on my existing application. use the best practices of alpinejs, htmx, thymleaf and htmx
+Dont break the existing code. Just implement the missing HTML PAGE. 
+# Workflow on the Children Page
+
+This page implements several key workflows for managing children and invitations with a clean, responsive interface. Here's a breakdown of the main interactions:
+
+## 1. Page Loading and Authentication
+
+- The page loads with proper authentication handling
+- If your session expires, the page automatically redirects to login
+- Alpine.js and HTMX provide smooth, SPA-like interactions without full page reloads
+
+## 2. Adding a Child
+
+1. **Initial Form Display**: The add form appears at the top of the page
+2. **Form Submission**: 
+   - User enters the child's name and age
+   - Clicks "Add Child" button
+   - HTMX submits the form data via POST to `/children/{parentId}`
+   - Loading indicator displays during submission
+3. **Response Handling**:
+   - On success: Page refreshes with new child added to the list
+   - On validation error: Form displays error messages
+
+## 3. Editing a Child
+
+1. **Edit Mode Activation**:
+   - User clicks the edit (pencil) icon next to child's name
+   - HTMX fetches edit form via GET to `/children/{parentId}/{childId}/edit`
+   - Form switches to edit mode with populated fields
+2. **Edit Form Submission**:
+   - User modifies name and/or age
+   - Clicks "Update Child" button
+   - HTMX submits via PUT to `/children/{parentId}/{childId}`
+   - Loading indicator shows during submission
+3. **Cancel Option**:
+   - User can click "Cancel" to exit edit mode
+   - HTMX reloads the standard form via GET to `/children/{parentId}`
+
+## 4. Sharing (Inviting) Another User
+
+1. **Share Modal Activation**:
+   - User clicks "Share" button on a child's entry
+   - Modal opens with Alpine.js animation
+   - HTMX loads invitation form via GET to `/children/invitations/form`
+2. **Invitation Form**:
+   - User enters recipient's details
+   - Submits invitation form
+   - Modal displays loading state
+3. **Modal Closure**:
+   - On successful submission, modal automatically closes
+   - Page refreshes to show updated state
+   - User can also manually close modal with the X button or ESC key
+
+## 5. Managing Pending Invitations
+
+1. **Pending Invitations Display**:
+   - If user has pending invitations, they appear in a dedicated section 
+   - Each invitation shows child name and expiration date
+2. **Invitation Actions**:
+   - **Accept**: User clicks "Accept" button
+     - HTMX sends POST to `/children/{parentId}/invitations/{invitationId}/accept`
+     - Loading indicator shows during processing
+     - Page refreshes to show child in main list
+   - **Reject**: User clicks "Reject" button
+     - HTMX sends POST to `/children/{parentId}/invitations/{invitationId}/revoke`
+     - Loading indicator shows during processing
+     - Invitation is removed from list
+
+## 6. Notification System
+
+- Success messages appear as green toast notifications at the top right
+- Error messages appear as red toast notifications
+- Notifications automatically fade out after a set time (3s for success, 5s for errors)
+- Users can dismiss notifications manually with the X button
+
+## 7. User Experience Enhancements
+
+- Loading indicators for all AJAX operations
+- Smooth transitions between states
+- Responsive design for mobile and desktop
+- Accessibility features including keyboard navigation
+- Dark mode support with appropriate styling
+
+This interface combines modern frontend technologies (HTMX, Alpine.js, Tailwind CSS) with Spring Boot backend to create a responsive, interactive experience without the complexity of a full JavaScript framework.

@@ -26,6 +26,7 @@ import com.buseni.discipline.children.service.EmailService;
 import com.buseni.discipline.children.service.SmsService;
 import com.buseni.discipline.common.exception.InvalidOperationException;
 import com.buseni.discipline.common.exception.ResourceNotFoundException;
+import com.buseni.discipline.common.exception.ValidationException;
 import com.buseni.discipline.users.domain.User;
 import com.buseni.discipline.users.repository.UserRepository;
 
@@ -64,13 +65,16 @@ public class ChildInvitationServiceImpl implements ChildInvitationService {
     public void createInvitation(ChildInvitationRequest request) {
         log.debug("Creating invitation for child: {} with request: {}", request.childId(), request);
 
+        // Validate request
+        validateInvitationRequest(request);
+
         // Verify child exists
         Child child = childRepository.findById(request.childId())
                 .orElseThrow(() -> new ResourceNotFoundException(ERROR_CHILD_NOT_FOUND, request.childId()));
 
         // Check number of parents
         if (child.getParentIds().size() >= MAX_PARENTS) {
-            throw new InvalidOperationException( ERROR_INVITATION_LIMIT_REACHED);
+            throw new InvalidOperationException(ERROR_INVITATION_LIMIT_REACHED);
         }
 
         String token = UUID.randomUUID().toString();
@@ -103,6 +107,43 @@ public class ChildInvitationServiceImpl implements ChildInvitationService {
         }
 
         log.info("Invitation created successfully for child: {} with token: {}", child.getId(), token);
+    }
+
+    /**
+     * Validates the invitation request
+     * 
+     * @param request the invitation request to validate
+     * @throws ValidationException if validation fails
+     */
+    private void validateInvitationRequest(ChildInvitationRequest request) {
+        // Validate childId
+        if (request.childId() == null || request.childId().isBlank()) {
+            throw new ValidationException("child.id.not.blank");
+        }
+        
+        // Validate that at least one contact method is provided
+        if ((request.email() == null || request.email().isBlank()) && 
+            (request.phone() == null || request.phone().isBlank())) {
+            throw new ValidationException("invitation.form.contact.required");
+        }
+        
+        // Validate email if provided
+        if (request.email() != null && !request.email().isBlank()) {
+            // Email regex pattern
+            String emailRegex = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
+            if (!request.email().matches(emailRegex)) {
+                throw new ValidationException("email.invalid");
+            }
+        }
+        
+        // Validate phone if provided
+        if (request.phone() != null && !request.phone().isBlank()) {
+            // Phone regex pattern for international format (E.164)
+            String phoneRegex = "^\\+?[1-9]\\d{1,14}$";
+            if (!request.phone().matches(phoneRegex)) {
+                throw new ValidationException("phone.invalid");
+            }
+        }
     }
 
     @Override
