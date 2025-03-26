@@ -23,17 +23,19 @@ import com.buseni.discipline.children.dto.ChildDto;
 import com.buseni.discipline.children.dto.ChildPendingInvitationDto;
 import com.buseni.discipline.children.service.ChildInvitationService;
 import com.buseni.discipline.children.service.ChildService;
+import com.buseni.discipline.common.exception.InvalidOperationException;
 import com.buseni.discipline.users.domain.User;
 
 import io.github.wimdeblauwe.htmx.spring.boot.mvc.HxRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-
+import lombok.extern.slf4j.Slf4j;
 @Controller
 @RequestMapping("/children")
 @RequiredArgsConstructor
 @SessionAttributes({ChildController.CHILDREN_MODEL_ATTRIBUTE, ChildController.PARENT_ID_MODEL_ATTRIBUTE, 
                    ChildController.PENDING_INVITATIONS_MODEL_ATTRIBUTE})
+@Slf4j
 public class ChildController {
 
     public static final String CHILDREN_MODEL_ATTRIBUTE = "children";
@@ -153,20 +155,36 @@ public class ChildController {
     public String acceptInvitation(@PathVariable String parentId,
                                   @PathVariable String invitationId,
                                   Model model) {
-        // Accept the invitation
-        invitationService.acceptInvitationById(invitationId);
-        
-        // Update both children list and pending invitations
-        List<ChildDto> updatedChildren = childService.getChildrenByParentId(parentId);
-        List<ChildPendingInvitationDto> updatedInvitations = invitationService.getPendingInvitations(parentId);
-        
-        model.addAttribute(CHILDREN_MODEL_ATTRIBUTE, updatedChildren);
-        model.addAttribute(PENDING_INVITATIONS_MODEL_ATTRIBUTE, updatedInvitations);
-        model.addAttribute(CHILD_DTO_MODEL_ATTRIBUTE, new ChildDto("", "", Integer.valueOf(0), Integer.valueOf(0)));
-        
-        // Add a success message
-        String successMessage = messageSource.getMessage("children.invitations.accepted.success", null, "Invitation accepted successfully", Locale.getDefault());
-        model.addAttribute(SUCCESS_MESSAGE_ATTRIBUTE, successMessage);
+        try {
+            // Accept the invitation
+            invitationService.acceptInvitationById(invitationId);
+            
+            // Update both children list and pending invitations
+            List<ChildDto> updatedChildren = childService.getChildrenByParentId(parentId);
+            List<ChildPendingInvitationDto> updatedInvitations = invitationService.getPendingInvitations(parentId);
+            
+            model.addAttribute(CHILDREN_MODEL_ATTRIBUTE, updatedChildren);
+            model.addAttribute(PENDING_INVITATIONS_MODEL_ATTRIBUTE, updatedInvitations);
+            model.addAttribute(CHILD_DTO_MODEL_ATTRIBUTE, new ChildDto("", "", Integer.valueOf(0), Integer.valueOf(0)));
+            model.addAttribute(PARENT_ID_MODEL_ATTRIBUTE, parentId);
+            
+            // Add a success message
+            String successMessage = messageSource.getMessage("children.invitations.accepted.success", null, "Invitation accepted successfully", Locale.getDefault());
+            model.addAttribute(SUCCESS_MESSAGE_ATTRIBUTE, successMessage);
+        } catch (InvalidOperationException e) {
+            // Log the error (you can use System.out.println if you don't have a logger configured)
+            log.error("Error accepting invitation: {}", e.getMessage());
+            
+            // Update model with current state
+            model.addAttribute(CHILDREN_MODEL_ATTRIBUTE, childService.getChildrenByParentId(parentId));
+            model.addAttribute(PENDING_INVITATIONS_MODEL_ATTRIBUTE, invitationService.getPendingInvitations(parentId));
+            model.addAttribute(CHILD_DTO_MODEL_ATTRIBUTE, new ChildDto("", "", Integer.valueOf(0), Integer.valueOf(0)));
+            model.addAttribute(PARENT_ID_MODEL_ATTRIBUTE, parentId);
+            
+            // Add error message as a normal success message (since we don't have error message in the template)
+            String errorMessage = messageSource.getMessage("children.invitations.error", null, "Failed to accept invitation. Please try again.", Locale.getDefault());
+            model.addAttribute(SUCCESS_MESSAGE_ATTRIBUTE, errorMessage);
+        }
         
         return CHILDREN_LIST_FRAGMENT_CHILDREN_CONTAINER;
     }
@@ -176,18 +194,27 @@ public class ChildController {
     public String revokeInvitation(@PathVariable String parentId,
                                   @PathVariable String invitationId,
                                   Model model) {
-        // Revoke the invitation
-        invitationService.revokeInvitationById(invitationId);
-        
-        // Only update the pending invitations list since children don't change
+        try {
+            // Revoke the invitation
+            invitationService.revokeInvitationById(invitationId);
+            
+        // Always update both children list and pending invitations to ensure consistency
+        List<ChildDto> updatedChildren = childService.getChildrenByParentId(parentId);
         List<ChildPendingInvitationDto> updatedInvitations = invitationService.getPendingInvitations(parentId);
+        
+        model.addAttribute(CHILDREN_MODEL_ATTRIBUTE, updatedChildren);
         model.addAttribute(PENDING_INVITATIONS_MODEL_ATTRIBUTE, updatedInvitations);
         model.addAttribute(CHILD_DTO_MODEL_ATTRIBUTE, new ChildDto("", "", Integer.valueOf(0), Integer.valueOf(0)));
+        model.addAttribute(PARENT_ID_MODEL_ATTRIBUTE, parentId);
         
         // Add a success message
         String successMessage = messageSource.getMessage("children.invitations.revoked.success", null, "Invitation revoked successfully", Locale.getDefault());
         model.addAttribute(SUCCESS_MESSAGE_ATTRIBUTE, successMessage);
-        
+            
         return CHILDREN_LIST_FRAGMENT_CHILDREN_CONTAINER;
+        } catch (InvalidOperationException e) {
+            log.error("Error revoking invitation: {}", e.getMessage());
+            return CHILDREN_LIST_FRAGMENT_CHILDREN_CONTAINER;
+        }
     }
 } 
