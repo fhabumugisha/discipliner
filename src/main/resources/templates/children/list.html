@@ -263,7 +263,8 @@
                                     
                                     <!-- Share Button -->
                                     <button type="button"
-                                            @click="currentChildId = child.id; shareModal = true"
+                                            th:attr="data-child-id=${child.id}"
+                                            @click="shareModal = true; currentChildId = $el.getAttribute('data-child-id')"
                                             class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-full shadow-sm text-white 
                                                    bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500
                                                    dark:bg-blue-500 dark:hover:bg-blue-600 dark:focus:ring-offset-gray-800
