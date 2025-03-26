@@ -36,6 +36,7 @@ public class ChildInvitationController {
     private static final String MESSAGE_ATTR = "message";
     private static final String ERROR_ATTR = "error";   
     private static final String INVITATION_REQUEST_ATTR = "invitationRequest";
+    private static final String INVITATION_FORM_FRAGMENT = "fragments/invitation-form :: form";             
 
 
     @GetMapping("/form")
@@ -49,12 +50,12 @@ public class ChildInvitationController {
             
             // Create empty request object for the form
             model.addAttribute(INVITATION_REQUEST_ATTR, new ChildInvitationRequest(childId, null, null));
-            return "fragments/invitation-form :: form";
+            return INVITATION_FORM_FRAGMENT;
         } catch (ResourceNotFoundException e) {
             log.warn("Child not found: {}", childId);
             model.addAttribute("success", false);
             model.addAttribute(ERROR_ATTR, messageSource.getMessage("child.not.found", null, "Child not found", Locale.getDefault()));
-            return "fragments/invitation-form :: form";
+            return INVITATION_FORM_FRAGMENT;
         }
     }
 
@@ -77,31 +78,31 @@ public class ChildInvitationController {
             model.addAttribute(INVITATION_REQUEST_ATTR, request);
 
             // Return the form with success message
-            return "fragments/invitation-form :: form";
+            return INVITATION_FORM_FRAGMENT;
         } catch (ValidationException e) {
             log.warn("Validation error creating invitation: {}", e.getMessage());
                 model.addAttribute(INVITATION_REQUEST_ATTR, request);
             model.addAttribute("success", false);
             model.addAttribute(ERROR_ATTR, messageSource.getMessage(e.getMessage(), null, e.getMessage(), Locale.getDefault()));
-            return "fragments/invitation-form :: form";
+            return INVITATION_FORM_FRAGMENT;
         } catch (ResourceNotFoundException e) {
             log.warn("Resource not found creating invitation: {}", e.getMessage());
             model.addAttribute(INVITATION_REQUEST_ATTR, request);
             model.addAttribute("success", false);
             model.addAttribute(ERROR_ATTR, messageSource.getMessage("child.not.found", null, "Child not found", Locale.getDefault()));
-            return "fragments/invitation-form :: form";
+            return INVITATION_FORM_FRAGMENT;
         } catch (InvalidOperationException e) {
             log.warn("Invalid operation creating invitation: {}", e.getMessage());
             model.addAttribute(INVITATION_REQUEST_ATTR, request);
             model.addAttribute("success", false);
             model.addAttribute(ERROR_ATTR, messageSource.getMessage(e.getMessage(), null, "Error sending invitation", Locale.getDefault()));
-            return "fragments/invitation-form :: form";
+            return INVITATION_FORM_FRAGMENT;
         } catch (Exception e) {
             log.error("Unexpected error creating invitation", e);
             model.addAttribute(INVITATION_REQUEST_ATTR, request);
             model.addAttribute("success", false);
             model.addAttribute(ERROR_ATTR, messageSource.getMessage("invitation.error", null, "An unexpected error occurred", Locale.getDefault()));
-            return "fragments/invitation-form :: form";
+            return INVITATION_FORM_FRAGMENT;
         }
     }
 

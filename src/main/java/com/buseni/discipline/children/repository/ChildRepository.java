@@ -14,5 +14,5 @@ public interface ChildRepository extends MongoRepository<Child, String> {
     
     List<Child> findByParentId(String parentId);
    
-    List<Child> findByParentIdAndDeletedFalse(String parentId);
+    List<Child> findByParentIdAndDeletedFalseOrderByCreatedAtDesc(String parentId);
 } 

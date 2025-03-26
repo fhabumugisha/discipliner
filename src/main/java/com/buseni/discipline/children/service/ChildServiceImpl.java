@@ -19,7 +19,7 @@ public class ChildServiceImpl implements ChildService {
 
     @Override
     public List<ChildDto> getChildrenByParentId(String parentId) {
-        return childRepository.findByParentIdAndDeletedFalse(parentId)
+        return childRepository.findByParentIdAndDeletedFalseOrderByCreatedAtDesc(parentId)
                 .stream()
                 .map(this::toDto)
                 .toList();
